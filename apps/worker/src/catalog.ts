@@ -150,11 +150,11 @@ export const COMPONENTS: ComponentEntry[] = [
   { name: "CrmDataTable",     category: "table",        source: "hs-uix", description: "DataTable that batch-fetches + client-paginates CRM records for an objectType." },
   { name: "CrmKanban",        category: "data-display", source: "hs-uix", description: "Kanban that batch-fetches CRM records for an objectType." },
   { name: "Spinner",          category: "state",        source: "hs-uix", description: "Animated braille/unicode loading indicator (inline, sized)." },
-  { name: "CollectionToolbar",        category: "data-display", source: "hs-uix", description: "Escape hatch — the shared search/filter/sort toolbar behind DataTable/Feed/Calendar. Prefer the packaged components." },
-  { name: "CollectionFilterControl",  category: "data-display", source: "hs-uix", description: "Escape hatch — single filter control (select/multiselect/dateRange) used inside CollectionToolbar." },
-  { name: "CollectionSortSelect",     category: "data-display", source: "hs-uix", description: "Escape hatch — sort dropdown used inside CollectionToolbar." },
-  { name: "CollectionCount",          category: "data-display", source: "hs-uix", description: "Escape hatch — visible/total record count label used inside CollectionToolbar." },
-  { name: "ActiveFilterChips",        category: "data-display", source: "hs-uix", description: "Escape hatch — removable active-filter chip row. DataTable/Feed render their own; use standalone only for custom toolbars." },
+  // NOTE: CollectionToolbar / CollectionFilterControl / CollectionSortSelect /
+  // CollectionCount / ActiveFilterChips are intentionally NOT listed. They ship
+  // only from the "hs-uix/common-components" subpath (not the root barrel the
+  // renderer imports) and are controlled components that can't be driven by a
+  // declarative spec. DataTable/Feed/Calendar/Kanban render their own toolbars.
 ];
 
 export const COMPONENT_NAMES: Set<string> = new Set(COMPONENTS.map((c) => c.name));

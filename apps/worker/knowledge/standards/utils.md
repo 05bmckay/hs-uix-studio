@@ -170,7 +170,7 @@ See [`kanban.md`](./kanban.md#paired-table-and-board-views) for the full view-to
 
 ## Query helpers (shared toolbar plumbing)
 
-The filter/search helpers behind DataTable / Kanban / Feed / Calendar toolbars. Use them only when building a **custom** collection view with the Collection primitives (`CollectionToolbar` etc.) — the packaged components call these internally.
+The filter/search helpers behind DataTable / Kanban / Feed / Calendar toolbars — the packaged components call these internally. The `Collection*` primitives that consume them are **not available as spec components**; these helpers are documented for completeness and for hand-written extension code, not for specs.
 
 ```js
 const chips = buildActiveFilterChips(filters, filterValues);     // removable active-filter chips

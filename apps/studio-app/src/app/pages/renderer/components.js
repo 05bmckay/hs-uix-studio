@@ -31,10 +31,12 @@ const HSUIX_NAMES = [
   "DataTable", "Kanban", "KanbanCardActions", "FormBuilder",
   "AutoTag", "AutoStatusTag", "KeyValueList", "SectionHeader",
   "AvatarStack", "StyledText",
-  // hs-uix 2.1.0 additions
-  "Feed", "Calendar", "CrmLookupSelect", "CrmDataTable", "CrmKanban",
-  "Spinner", "CollectionToolbar", "CollectionFilterControl",
-  "CollectionSortSelect", "CollectionCount", "ActiveFilterChips",
+  // hs-uix 2.1.0 additions. Only the root-barrel ("hs-uix") runtime exports
+  // are listed — the Collection* primitives and ActiveFilterChips ship only
+  // from the "hs-uix/common-components" subpath (the root type declarations
+  // are ahead of the build), and they're controlled components that can't be
+  // driven by a declarative spec anyway, so they're intentionally omitted.
+  "Feed", "Calendar", "CrmLookupSelect", "CrmDataTable", "CrmKanban", "Spinner",
 ];
 
 const rawComponents = {};
@@ -283,9 +285,6 @@ const SafeCrmKanban = withSafeArrayProps(rawComponents.CrmKanban, "CrmKanban", [
   "stages",
   "cardFields",
 ]);
-const SafeActiveFilterChips = withSafeArrayProps(rawComponents.ActiveFilterChips, "ActiveFilterChips", [
-  "items",
-]);
 
 export const components = {
   ...rawComponents,
@@ -306,5 +305,4 @@ export const components = {
   ...(SafeCalendar ? { Calendar: SafeCalendar } : {}),
   ...(SafeCrmDataTable ? { CrmDataTable: SafeCrmDataTable } : {}),
   ...(SafeCrmKanban ? { CrmKanban: SafeCrmKanban } : {}),
-  ...(SafeActiveFilterChips ? { ActiveFilterChips: SafeActiveFilterChips } : {}),
 };
