@@ -48,6 +48,10 @@
 | **DataTable** (`hs-uix/datatable`) | tables.md | **Default for any table.** Filter/sort/paginate/inline edit/grouping/selection | — |
 | **Kanban** (`hs-uix/kanban`) | kanban.md | Stage-based board view with filters, metrics, card actions | Flat lists (use DataTable) |
 | **KanbanCardActions** (`hs-uix/kanban`) | kanban.md | Per-card action bar inside Kanban footer | Outside a Kanban card |
+| **Feed** (`hs-uix/feed`) | feed.md | Chronological activity timeline / audit log / recent events, with date grouping | Side-by-side attribute compare (use DataTable) |
+| **Calendar** (`hs-uix/calendar`) | calendar.md | Events plotted on a month/week/day/agenda view | Flat or stage data (use DataTable/Kanban) |
+| **CrmDataTable** (`hs-uix/utils`) | crm-data.md | DataTable bound to live CRM search (objectType + properties) | Data already in hand (use DataTable) |
+| **CrmKanban** (`hs-uix/utils`) | crm-data.md | Kanban bound to live CRM search | Data already in hand (use Kanban) |
 | `Table` | tables.md | **Escape hatch only** — raw tabular layout hs-uix can't express | Standard list card (use DataTable) |
 | `TableHead` / `TableHeader` / `TableBody` / `TableRow` / `TableCell` / `TableFooter` | tables.md | Building blocks for raw `Table` | Inside a DataTable (handled internally) |
 | `SearchInput` | tables.md | Search field for raw `Table`; built into DataTable | — |
@@ -57,6 +61,7 @@
 | Component | File | Use when... | Don't use when... |
 |---|---|---|---|
 | **FormBuilder** (`hs-uix/form`) | forms.md | **Default for any form.** Config-driven fields, validation, wizards, repeaters, conditional visibility | Single-field inline edit (use raw Input) |
+| **CrmLookupSelect** (`hs-uix/common-components`) | crm-data.md | CRM-backed Select/MultiSelect with debounced live search (objectType + properties) | Static option list (use Select/MultiSelect) |
 | `Form` | forms.md | **Escape hatch** — one or two inputs hand-wired | Anything with 3+ fields or validation (use FormBuilder) |
 | `Input` | forms.md | Short text (name, email, single line) | Long text (use TextArea), dates (use DateInput) |
 | `TextArea` | forms.md | Multi-line text (notes, comments) | Short values |
@@ -93,6 +98,7 @@
 | Component | File | Use when... | Don't use when... |
 |---|---|---|---|
 | `LoadingSpinner` | states.md | Async operations, initial data fetch | — |
+| **Spinner** (`hs-uix/common-components`) | states.md | Inline, low-key braille/unicode "still working" indicator | Card/panel-level loading (use LoadingSpinner) |
 | `EmptyState` | states.md | No data to display | Entire card empty (show CRM identity first) |
 | `ErrorState` | states.md | Fatal errors, permission denied, feature unavailable | Inline errors (use Alert) |
 | `Alert` | states.md | Inline contextual messages needing attention | Every state (not a mood ring), after triage tiles (redundant) |
@@ -144,8 +150,11 @@
 | `buildOptions`, `findOptionLabel` | utils.md | Turn raw arrays into `{label, value}` for `Select` / `MultiSelect` |
 | `getAutoTagVariant`, `createStatusTagSortComparator` | utils.md | Variant inference in custom cells; sort-by-color-then-alpha |
 | `sumBy` | utils.md | Footer totals, header metric aggregates |
+| `formatDateTime`, `formatPercentage` | utils.md | Timestamps; locale-aware percentages (takes a ratio) |
 | `isDateValueObject`, `isTimeValueObject`, `isDateTimeValueObject` | utils.md | Detect HubSpot structured date/time values in `filterFn` / `sortComparator` |
 | `deriveCardFieldsFromColumns` | utils.md | Project a DataTable `columns` config into Kanban `cardFields` |
+| `buildActiveFilterChips`, `resetFilterValues`, `filterRows`, `searchRows` | utils.md | Query plumbing for **custom** collection views (CollectionToolbar) — packaged components do this internally |
+| `CrmDataTable`, `CrmKanban`, `useCrmSearch*` | crm-data.md | Live CRM-bound table/board + the search hooks behind them |
 
 ---
 

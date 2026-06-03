@@ -31,6 +31,10 @@ const HSUIX_NAMES = [
   "DataTable", "Kanban", "KanbanCardActions", "FormBuilder",
   "AutoTag", "AutoStatusTag", "KeyValueList", "SectionHeader",
   "AvatarStack", "StyledText",
+  // hs-uix 2.1.0 additions
+  "Feed", "Calendar", "CrmLookupSelect", "CrmDataTable", "CrmKanban",
+  "Spinner", "CollectionToolbar", "CollectionFilterControl",
+  "CollectionSortSelect", "CollectionCount", "ActiveFilterChips",
 ];
 
 const rawComponents = {};
@@ -262,6 +266,27 @@ const SafeStepIndicator = withSafeArrayProps(rawComponents.StepIndicator, "StepI
   "steps",
 ]);
 
+// hs-uix 2.1.0 components with required collection props. Same rationale as
+// above — a missing `$data.x` path should degrade to an empty view, not throw
+// inside the reconciler and blank the page.
+const SafeFeed = withSafeArrayProps(rawComponents.Feed, "Feed", [
+  "items",
+  "fields",
+]);
+const SafeCalendar = withSafeArrayProps(rawComponents.Calendar, "Calendar", [
+  "events",
+]);
+const SafeCrmDataTable = withSafeArrayProps(rawComponents.CrmDataTable, "CrmDataTable", [
+  "columns",
+]);
+const SafeCrmKanban = withSafeArrayProps(rawComponents.CrmKanban, "CrmKanban", [
+  "stages",
+  "cardFields",
+]);
+const SafeActiveFilterChips = withSafeArrayProps(rawComponents.ActiveFilterChips, "ActiveFilterChips", [
+  "items",
+]);
+
 export const components = {
   ...rawComponents,
   ...(SafeIcon ? { Icon: SafeIcon } : {}),
@@ -277,4 +302,9 @@ export const components = {
   ...(SafeMultiSelect ? { MultiSelect: SafeMultiSelect } : {}),
   ...(SafeToggleGroup ? { ToggleGroup: SafeToggleGroup } : {}),
   ...(SafeStepIndicator ? { StepIndicator: SafeStepIndicator } : {}),
+  ...(SafeFeed ? { Feed: SafeFeed } : {}),
+  ...(SafeCalendar ? { Calendar: SafeCalendar } : {}),
+  ...(SafeCrmDataTable ? { CrmDataTable: SafeCrmDataTable } : {}),
+  ...(SafeCrmKanban ? { CrmKanban: SafeCrmKanban } : {}),
+  ...(SafeActiveFilterChips ? { ActiveFilterChips: SafeActiveFilterChips } : {}),
 };

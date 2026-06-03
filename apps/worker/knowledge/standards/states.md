@@ -56,6 +56,32 @@ if (loading) {
 
 ---
 
+## Spinner (`hs-uix/common-components`)
+
+`Spinner` is an animated unicode/braille loading indicator with optional label text — a more characterful inline loader than the platform `LoadingSpinner`. Use it for lightweight inline "working…" states (a small status line, a polling indicator); use the native `LoadingSpinner` for standard card/panel-level loading.
+
+```jsx
+import { Spinner } from "hs-uix/common-components";
+
+<Spinner name="braille" label="Syncing records…" inline />
+```
+
+### Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `name` | `SpinnerName` | `"braille"` | Preset animation. Options: `braille`, `braillewave`, `dna`, `scan`, `rain`, `scanline`, `pulse`, `snake`, `sparkle`, `cascade`, `columns`, `orbit`, `breathe`, `waverows`. |
+| `frames` | `string[]` | — | Custom animation frames (overrides `name`). |
+| `interval` | `number` | — | Frame interval in ms. |
+| `label` | `ReactNode` | — | Text shown next to the spinner. |
+| `paused` | `boolean` | `false` | Freeze the animation. |
+| `variant` | `"bodytext" \| "microcopy"` | `"bodytext"` | Text size of the label. |
+| `inline` | `boolean` | `false` | Render inline rather than block. |
+
+**When to use which:** native `LoadingSpinner` for card/panel/modal-level loading (the default); `Spinner` for an inline, low-key "still working" indicator where the braille animation reads as ambient progress.
+
+---
+
 ## EmptyState
 
 Use `EmptyState` when there is no data to display. Place it where the data table, list, or content would normally render.

@@ -1,7 +1,7 @@
 ---
 id: utils
-scope: [formatters, options, hubspot-value-guards, tag-variants, collections, hs-uix]
-depends-on: [status-and-tags]
+scope: [formatters, options, hubspot-value-guards, tag-variants, collections, query-helpers, crm-search, hs-uix]
+depends-on: [status-and-tags, crm-data]
 archetypes: [all]
 ---
 
@@ -19,6 +19,8 @@ import {
   createStatusTagSortComparator,
   sumBy,
   deriveCardFieldsFromColumns,
+  buildActiveFilterChips, resetFilterValues, getEmptyFilterValues, filterRows, searchRows,
+  CrmDataTable, CrmKanban, useCrmSearchDataSource, useCrmSearchOptions,
 } from "hs-uix/utils";
 ```
 
@@ -163,6 +165,30 @@ const CARD_FIELDS = deriveCardFieldsFromColumns(COLUMNS);
 ```
 
 See [`kanban.md`](./kanban.md#paired-table-and-board-views) for the full view-toggle pattern.
+
+---
+
+## Query helpers (shared toolbar plumbing)
+
+The filter/search helpers behind DataTable / Kanban / Feed / Calendar toolbars. Use them only when building a **custom** collection view with the Collection primitives (`CollectionToolbar` etc.) — the packaged components call these internally.
+
+```js
+const chips = buildActiveFilterChips(filters, filterValues);     // removable active-filter chips
+const cleared = resetFilterValues(filters, filterValues, "stage"); // clear one filter
+const blank = getEmptyFilterValues(filters);                      // initial/empty values
+filterRows(rows, filters, filterValues);                          // apply filters
+searchRows(rows, query, searchFields);                            // apply search
+```
+
+---
+
+## CRM data adapters
+
+`CrmDataTable`, `CrmKanban`, and the `useCrmSearch*` hooks are CRM-bound data components that live in `hs-uix/utils` (they're adapters, not visuals). Point them at an `objectType` + `properties` and they fetch + paginate for you. Full coverage in [`crm-data.md`](./crm-data.md).
+
+```js
+<CrmDataTable objectType="deal" properties={["dealname", "amount"]} columns={COLUMNS} />
+```
 
 ---
 

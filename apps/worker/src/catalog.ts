@@ -142,6 +142,19 @@ export const COMPONENTS: ComponentEntry[] = [
   { name: "SectionHeader",    category: "typography",   source: "hs-uix", description: "Demibold title + optional description row." },
   { name: "AvatarStack",      category: "media",        source: "hs-uix", description: "Overlapping avatars with overflow count." },
   { name: "StyledText",       category: "typography",   source: "hs-uix", description: "Text with inline format overrides." },
+
+  // ---- hs-uix 2.1.0 ---------------------------------------------------------
+  { name: "Feed",             category: "data-display", source: "hs-uix", description: "Activity feed / timeline. Declarative `fields` with placement, date grouping, tabs, filters, load-more." },
+  { name: "Calendar",         category: "data-display", source: "hs-uix", description: "Month/week/day/agenda calendar from `events` + `eventFields`. Presentational; caller owns fetching." },
+  { name: "CrmLookupSelect",  category: "form",         source: "hs-uix", description: "CRM-backed Select/MultiSelect with debounced live search (objectType + properties)." },
+  { name: "CrmDataTable",     category: "table",        source: "hs-uix", description: "DataTable that batch-fetches + client-paginates CRM records for an objectType." },
+  { name: "CrmKanban",        category: "data-display", source: "hs-uix", description: "Kanban that batch-fetches CRM records for an objectType." },
+  { name: "Spinner",          category: "state",        source: "hs-uix", description: "Animated braille/unicode loading indicator (inline, sized)." },
+  { name: "CollectionToolbar",        category: "data-display", source: "hs-uix", description: "Escape hatch — the shared search/filter/sort toolbar behind DataTable/Feed/Calendar. Prefer the packaged components." },
+  { name: "CollectionFilterControl",  category: "data-display", source: "hs-uix", description: "Escape hatch — single filter control (select/multiselect/dateRange) used inside CollectionToolbar." },
+  { name: "CollectionSortSelect",     category: "data-display", source: "hs-uix", description: "Escape hatch — sort dropdown used inside CollectionToolbar." },
+  { name: "CollectionCount",          category: "data-display", source: "hs-uix", description: "Escape hatch — visible/total record count label used inside CollectionToolbar." },
+  { name: "ActiveFilterChips",        category: "data-display", source: "hs-uix", description: "Escape hatch — removable active-filter chip row. DataTable/Feed render their own; use standalone only for custom toolbars." },
 ];
 
 export const COMPONENT_NAMES: Set<string> = new Set(COMPONENTS.map((c) => c.name));

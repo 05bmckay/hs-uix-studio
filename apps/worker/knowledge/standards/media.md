@@ -357,6 +357,8 @@ import { Flex, Illustration, Text } from "@hubspot/ui-extensions";
 
 The `Icon` component renders a visual icon within other components. It works inside most components that support children (Button, Text, Alert, Flex, etc.) but not in components that lack child support (e.g., Input).
 
+> **Spec `Icon` is the native HubSpot `Icon`.** hs-uix 2.1.0 ships an `Icon` *superset* (custom glyphs, any CSS color, pixel sizes), but Studio intentionally maps spec `Icon` to the **native** component — so stick to native props (`name` from the catalog below, semantic `color`, `sm`/`md`/`lg` `size`). Don't author hex colors or pixel sizes on `Icon`; an invalid `name` renders a red `xCircle` placeholder by design.
+
 Always pair icons with text. If that is not possible, include the `screenReaderText` prop.
 
 ```jsx

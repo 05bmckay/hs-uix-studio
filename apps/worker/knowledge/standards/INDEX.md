@@ -13,6 +13,9 @@
 | **Build a new card from scratch** | `card-building-process.md` then 1-2 component files |
 | **Add a data table with filters** | `tables.md` (use `hs-uix/datatable` — raw `Table` is an escape hatch) |
 | **Add a stage-based board / pipeline** | `kanban.md` (use `hs-uix/kanban`) |
+| **Add an activity feed / timeline / audit log** | `feed.md` (use `hs-uix/feed`) |
+| **Add a calendar / scheduling / month view** | `calendar.md` (use `hs-uix/calendar`) |
+| **Bind a table/board/lookup to live CRM data** | `crm-data.md` (`CrmDataTable` / `CrmKanban` / `CrmLookupSelect`) |
 | **Add a form or edit flow** | `forms.md` (use `hs-uix/form` for anything beyond 1-2 fields) + `overlays.md` |
 | **Show metrics / KPIs** | `data-display.md` |
 | **Build a chart** | `data-display.md` (Chart Guidelines section) |
@@ -58,6 +61,8 @@ Pick the archetype that matches the user's workflow before writing code:
 |---|---|---|
 | **List Manager** | Statistics → `hs-uix` DataTable → Panel | Browsing/searching records |
 | **Pipeline Board** | Statistics → `hs-uix` Kanban (stages + metrics) | "Where are deals / tickets / leads by stage?" |
+| **Activity Feed** | SectionHeader → `hs-uix` Feed (date-grouped, filters) | "What happened on this record, and when?" |
+| **Calendar View** | SectionHeader → `hs-uix` Calendar (month/week/agenda) | "Where do these events fall on a calendar?" |
 | **Triage Dashboard** | ProgressBar → Tile+AutoGrid → Accordion groups | "What needs attention now?" |
 | **KPI Snapshot** | Statistics → DescriptionList → optional chart | At-a-glance metrics |
 | **Chart-Forward** | Tile(chart) → Statistics → DescriptionList | Trends over time |
@@ -75,8 +80,11 @@ Pick the archetype that matches the user's workflow before writing code:
 | File | Scope | Key Components |
 |---|---|---|
 | `buttons-and-actions.md` | Buttons, dropdowns, actions | Button, ButtonRow, Dropdown |
+| `calendar.md` | Calendar / scheduling views | **`hs-uix` Calendar (month/week/day/agenda)** |
 | `card-building-process.md` | Build workflow, archetypes, checklist | — |
 | `crm-components.md` | Native CRM components | CrmPropertyList, CrmStageTracker, CrmActionLink |
+| `crm-data.md` | CRM-backed table/board/lookup | **`hs-uix` CrmDataTable, CrmKanban, CrmLookupSelect** |
+| `feed.md` | Activity feed / timeline | **`hs-uix` Feed** |
 | `data-and-state.md` | Hooks, data fetching | useCrmProperties, useAssociations |
 | `data-display.md` | Metrics, charts, progress | Statistics, ProgressBar, BarChart, DescriptionList, KeyValueList |
 | `forms.md` | Forms & inputs | **`hs-uix` FormBuilder (default)**, Form, Input, Select, DateInput, Toggle |
@@ -100,9 +108,12 @@ There are no project-local common components. Use `hs-uix` primitives — see th
 
 | If you're reading... | Also relevant |
 |---|---|
-| `tables.md` | `utils.md`, `status-and-tags.md` (AutoStatusTag in cells) |
-| `forms.md` | `overlays.md`, `utils.md` (buildOptions, findOptionLabel) |
-| `kanban.md` | `tables.md` (shared filter/sort config), `utils.md` (deriveCardFieldsFromColumns) |
+| `tables.md` | `utils.md`, `status-and-tags.md` (AutoStatusTag in cells), `crm-data.md` (CrmDataTable) |
+| `forms.md` | `overlays.md`, `utils.md` (buildOptions, findOptionLabel), `crm-data.md` (CrmLookupSelect) |
+| `kanban.md` | `tables.md` (shared filter/sort config), `utils.md` (deriveCardFieldsFromColumns), `crm-data.md` (CrmKanban) |
+| `feed.md` | `tables.md` (shared toolbar/filter config), `status-and-tags.md` (typeVariant), `utils.md` (formatDateTime) |
+| `calendar.md` | `tables.md` (shared filter/search config), `overlays.md` (event overlays), `utils.md` (formatDate) |
+| `crm-data.md` | `tables.md`, `kanban.md`, `forms.md`, `data-and-state.md` (raw CRM fetch) |
 | `overlays.md` | `gotchas.md` (PanelFooter rules) |
 | `navigation.md` | `media.md` (icon pairs) |
 | `states.md` | `media.md` (illustration catalog) |

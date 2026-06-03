@@ -244,6 +244,8 @@ const statusTagVariant =
 
 Removable filter pills using Tag components with onClick/close patterns, grouped with action links. Based on HubSpot's Users & Teams filter bar pattern.
 
+> **DataTable / Kanban / Feed / Calendar render their own active-filter chips** — you don't build these for the packaged components. `ActiveFilterChips` (`hs-uix/common-components`) is the standalone chip row behind them, and `buildActiveFilterChips` / `resetFilterValues` (`hs-uix/utils`) compute the chip list and clear-one behavior. Reach for them **only** when hand-building a custom collection view with `CollectionToolbar`; otherwise let the component's built-in toolbar handle chips. The hand-rolled pattern below is for non-collection filter bars.
+
 ### Filter Chips Pattern
 
 Filter chips sit in a filter bar zone between tabs and table content. Each chip shows the filter name, active count, and a remove action. The bar includes "Clear all" and "+ Add filter" links.
