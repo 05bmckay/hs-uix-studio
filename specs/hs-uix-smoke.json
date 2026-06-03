@@ -1,0 +1,213 @@
+{
+  "meta": {
+    "name": "hs-uix Smoke Test",
+    "description": "Exercises every hs-uix component registered in the renderer to verify the spec format covers their prop shapes.",
+    "surface": "crm.record.tab",
+    "object": "deals"
+  },
+  "state": {},
+  "data": {
+    "kvItems": [
+      {
+        "key": "owner",
+        "label": "Owner",
+        "value": "Carter McKay"
+      },
+      {
+        "key": "stage",
+        "label": "Stage",
+        "value": "Negotiation"
+      },
+      {
+        "key": "amount",
+        "label": "Amount",
+        "value": "$48,500"
+      }
+    ],
+    "tableColumns": [
+      {
+        "name": "name",
+        "label": "Name",
+        "width": 200
+      },
+      {
+        "name": "status",
+        "label": "Status",
+        "width": 140
+      },
+      {
+        "name": "owner",
+        "label": "Owner",
+        "width": 160
+      }
+    ],
+    "tableRows": [
+      {
+        "id": "1",
+        "name": "Foundation pour",
+        "status": "Complete",
+        "owner": "Alex"
+      },
+      {
+        "id": "2",
+        "name": "Framing",
+        "status": "In progress",
+        "owner": "Jordan"
+      },
+      {
+        "id": "3",
+        "name": "Roofing",
+        "status": "Blocked",
+        "owner": "Sam"
+      }
+    ],
+    "kanbanStages": [
+      {
+        "id": "todo",
+        "label": "To do"
+      },
+      {
+        "id": "doing",
+        "label": "Doing"
+      },
+      {
+        "id": "done",
+        "label": "Done"
+      }
+    ],
+    "kanbanCards": [
+      {
+        "id": "c1",
+        "stage": "todo",
+        "title": "Order steel"
+      },
+      {
+        "id": "c2",
+        "stage": "doing",
+        "title": "Pour slab"
+      },
+      {
+        "id": "c3",
+        "stage": "done",
+        "title": "Site survey"
+      }
+    ],
+    "formFields": [
+      {
+        "name": "title",
+        "label": "Title",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "notes",
+        "label": "Notes",
+        "type": "textarea"
+      }
+    ],
+    "avatarItems": [
+      {
+        "letter": "C",
+        "color": "#0F62FE"
+      },
+      {
+        "letter": "J",
+        "color": "#24A148"
+      },
+      {
+        "letter": "S",
+        "color": "#DA1E28"
+      }
+    ]
+  },
+  "root": "card-root",
+  "elements": {
+    "sectionheader": {
+      "type": "SectionHeader",
+      "title": "Account snapshot",
+      "description": "Quick facts about this deal"
+    },
+    "keyvaluelist": {
+      "type": "KeyValueList",
+      "items": "$data.kvItems",
+      "direction": "column",
+      "gap": "xs"
+    },
+    "autotag": {
+      "type": "AutoTag",
+      "value": "construction"
+    },
+    "autostatustag": {
+      "type": "AutoStatusTag",
+      "status": "Behind schedule"
+    },
+    "avatarstack": {
+      "type": "AvatarStack",
+      "items": "$data.avatarItems",
+      "max": 3
+    },
+    "flex": {
+      "type": "Flex",
+      "direction": "row",
+      "gap": "xs",
+      "align": "center",
+      "children": [
+        "autotag",
+        "autostatustag",
+        "avatarstack"
+      ]
+    },
+    "styledtext": {
+      "type": "StyledText",
+      "text": "Critical path at risk",
+      "format": {
+        "fontWeight": "bold"
+      }
+    },
+    "sectionheader-1": {
+      "type": "SectionHeader",
+      "title": "Tasks"
+    },
+    "datatable": {
+      "type": "DataTable",
+      "columns": "$data.tableColumns"
+    },
+    "sectionheader-2": {
+      "type": "SectionHeader",
+      "title": "Pipeline"
+    },
+    "kanban": {
+      "type": "Kanban",
+      "stages": "$data.kanbanStages",
+      "cards": "$data.kanbanCards",
+      "stageField": "stage",
+      "cardKey": "id"
+    },
+    "sectionheader-3": {
+      "type": "SectionHeader",
+      "title": "New task"
+    },
+    "formbuilder": {
+      "type": "FormBuilder",
+      "fields": "$data.formFields"
+    },
+    "card-root": {
+      "type": "Flex",
+      "name": "card-root",
+      "direction": "column",
+      "gap": "md",
+      "children": [
+        "sectionheader",
+        "keyvaluelist",
+        "flex",
+        "styledtext",
+        "sectionheader-1",
+        "datatable",
+        "sectionheader-2",
+        "kanban",
+        "sectionheader-3",
+        "formbuilder"
+      ]
+    }
+  }
+}

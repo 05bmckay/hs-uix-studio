@@ -1,0 +1,10 @@
+{
+  "name": "hs-uix-studio-pages",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "@hubspot/ui-extensions": "latest",
+    "effect": "^3.21.2",
+    "hs-uix": "^1.6.4"
+  }
+}

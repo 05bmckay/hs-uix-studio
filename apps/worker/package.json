@@ -1,0 +1,32 @@
+{
+  "name": "@hs-uix-studio/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "knowledge:build": "node scripts/build-knowledge.mjs",
+    "predev": "npm run knowledge:build",
+    "predeploy": "npm run knowledge:build",
+    "pretypecheck": "npm run knowledge:build",
+    "dev": "wrangler dev",
+    "deploy": "WRANGLER_SEND_METRICS=false wrangler deploy --no-x-autoconfig",
+    "migrate:local": "wrangler d1 execute studio --local --file=./schema.sql",
+    "migrate:remote": "wrangler d1 execute studio --remote --file=./schema.sql",
+    "d1:projects": "wrangler d1 execute studio --remote --command \"SELECT id, name, datetime(updated_at/1000,'unixepoch') AS updated FROM projects ORDER BY updated_at DESC\"",
+    "d1:delete-project": "node scripts/d1-delete-project.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hs-uix/stream-relay": "^0.2.0",
+    "agents": "^0.12.3",
+    "effect": "^3.21.2",
+    "hono": "^4.6.0",
+    "openai": "^4.77.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260506.1",
+    "typescript": "^5.6.0",
+    "wrangler": "^4.97.0"
+  }
+}

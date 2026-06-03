@@ -1,0 +1,23 @@
+{
+  "uid": "hs-uix-studio-app",
+  "type": "app",
+  "config": {
+    "name": "hs-uix Studio",
+    "description": "Prototyping tool for HubSpot UI Extension cards — prompt, preview, and export.",
+    "distribution": "marketplace",
+    "auth": {
+      "type": "oauth",
+      "redirectUrls": [
+        "https://hs-uix-studio-worker.05bmckay.workers.dev/oauth/callback"
+      ],
+      "requiredScopes": ["oauth", "crm.objects.users.read"],
+      "optionalScopes": [],
+      "conditionallyRequiredScopes": []
+    },
+    "permittedUrls": {
+      "fetch": ["https://hs-uix-studio-worker.05bmckay.workers.dev"],
+      "iframe": [],
+      "img": []
+    }
+  }
+}

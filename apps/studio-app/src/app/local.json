@@ -1,0 +1,5 @@
+{
+  "proxy": {
+    "https://hs-uix-studio-worker.05bmckay.workers.dev": "http://localhost:8787"
+  }
+}

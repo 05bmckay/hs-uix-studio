@@ -1,0 +1,1373 @@
+{
+  "meta": {
+    "name": "Studio Settings & Usage",
+    "description": "Settings and usage dashboard for the hs-uix Studio app. Surfaces the connected HubSpot portal, OAuth scopes, token spend against the conversational model, per-project activity, tool-call health, and account controls (refresh / disconnect). Rendered inside the Studio app page itself, not a CRM card.",
+    "surface": "app.settings"
+  },
+  "state": {
+    "activeTab": "overview",
+    "usageWindow": "30d"
+  },
+  "data": {
+    "install": {
+      "portalName": "Acme HubSpot Portal",
+      "hubIdLabel": "Hub ID 12345678",
+      "authorizedUser": "carter@acme.com",
+      "installedOnLabel": "Installed Feb 14, 2026",
+      "installedAgoLabel": "Installed 10 weeks ago",
+      "tokenStatusLabel": "Active",
+      "tokenStatusVariant": "success",
+      "tokenExpiresLabel": "Refreshes automatically in 23 minutes",
+      "appVersionLabel": "hs-uix Studio · v0.3.1",
+      "workerDeployedLabel": "Worker deployed Apr 22, 2026"
+    },
+    "scopes": [
+      {
+        "label": "crm.objects.contacts.read",
+        "description": "Read contact records"
+      },
+      {
+        "label": "crm.objects.deals.read",
+        "description": "Read deal records"
+      },
+      {
+        "label": "crm.schemas.custom.read",
+        "description": "Read custom object schemas"
+      },
+      {
+        "label": "ui-extensions.read",
+        "description": "Read UI extension definitions"
+      },
+      {
+        "label": "ui-extensions.write",
+        "description": "Upload generated extensions"
+      }
+    ],
+    "overviewStats": [
+      {
+        "label": "Projects",
+        "value": "7",
+        "sublabel": "2 created this month"
+      },
+      {
+        "label": "Chats",
+        "value": "48",
+        "sublabel": "12 in the last 7 days"
+      },
+      {
+        "label": "Tokens (30 days)",
+        "value": "1.24M",
+        "sublabel": "872K in · 368K out"
+      },
+      {
+        "label": "Spend (30 days)",
+        "value": "$4.83",
+        "sublabel": "Est. Anthropic cost"
+      }
+    ],
+    "lastActivityLabel": "Last chat · 42 minutes ago · Restaurant inventory card",
+    "usageWindows": [
+      {
+        "value": "7d",
+        "label": "Last 7 days"
+      },
+      {
+        "value": "30d",
+        "label": "Last 30 days"
+      },
+      {
+        "value": "all",
+        "label": "All time"
+      }
+    ],
+    "usageHeadlineStats": [
+      {
+        "label": "Input tokens",
+        "value": "872K",
+        "sublabel": "≈ 3,120 msgs"
+      },
+      {
+        "label": "Output tokens",
+        "value": "368K",
+        "sublabel": "Avg 7.6K per reply"
+      },
+      {
+        "label": "Total cost",
+        "value": "$4.83",
+        "sublabel": "≈ $0.10 per chat"
+      },
+      {
+        "label": "Avg turn latency",
+        "value": "9.2s",
+        "sublabel": "P95 22.4s"
+      }
+    ],
+    "usageChart": [
+      {
+        "Day": "Mar 26",
+        "Tokens": 28000,
+        "Series": "Input"
+      },
+      {
+        "Day": "Mar 26",
+        "Tokens": 11000,
+        "Series": "Output"
+      },
+      {
+        "Day": "Mar 29",
+        "Tokens": 41000,
+        "Series": "Input"
+      },
+      {
+        "Day": "Mar 29",
+        "Tokens": 17500,
+        "Series": "Output"
+      },
+      {
+        "Day": "Apr 1",
+        "Tokens": 53000,
+        "Series": "Input"
+      },
+      {
+        "Day": "Apr 1",
+        "Tokens": 22000,
+        "Series": "Output"
+      },
+      {
+        "Day": "Apr 4",
+        "Tokens": 38000,
+        "Series": "Input"
+      },
+      {
+        "Day": "Apr 4",
+        "Tokens": 16500,
+        "Series": "Output"
+      },
+      {
+        "Day": "Apr 7",
+        "Tokens": 62000,
+        "Series": "Input"
+      },
+      {
+        "Day": "Apr 7",
+        "Tokens": 28000,
+        "Series": "Output"
+      },
+      {
+        "Day": "Apr 10",
+        "Tokens": 71000,
+        "Series": "Input"
+      },
+      {
+        "Day": "Apr 10",
+        "Tokens": 31000,
+        "Series": "Output"
+      },
+      {
+        "Day": "Apr 13",
+        "Tokens": 44000,
+        "Series": "Input"
+      },
+      {
+        "Day": "Apr 13",
+        "Tokens": 19000,
+        "Series": "Output"
+      },
+      {
+        "Day": "Apr 16",
+        "Tokens": 89000,
+        "Series": "Input"
+      },
+      {
+        "Day": "Apr 16",
+        "Tokens": 37000,
+        "Series": "Output"
+      },
+      {
+        "Day": "Apr 19",
+        "Tokens": 102000,
+        "Series": "Input"
+      },
+      {
+        "Day": "Apr 19",
+        "Tokens": 44000,
+        "Series": "Output"
+      },
+      {
+        "Day": "Apr 22",
+        "Tokens": 76000,
+        "Series": "Input"
+      },
+      {
+        "Day": "Apr 22",
+        "Tokens": 33000,
+        "Series": "Output"
+      },
+      {
+        "Day": "Apr 24",
+        "Tokens": 58000,
+        "Series": "Input"
+      },
+      {
+        "Day": "Apr 24",
+        "Tokens": 24000,
+        "Series": "Output"
+      }
+    ],
+    "projectUsage": [
+      {
+        "project": "Restaurant inventory",
+        "owner": "carter@acme.com",
+        "chats": 11,
+        "messages": 92,
+        "tokensLabel": "324K",
+        "costLabel": "$1.28",
+        "costPerTurnLabel": "$0.014",
+        "trendLabel": "+38%",
+        "trendVariant": "error",
+        "topToolLabel": "validate_spec · 31%",
+        "lastActiveLabel": "42 min ago"
+      },
+      {
+        "project": "Fleet maintenance",
+        "owner": "priya@acme.com",
+        "chats": 8,
+        "messages": 71,
+        "tokensLabel": "251K",
+        "costLabel": "$0.96",
+        "costPerTurnLabel": "$0.013",
+        "trendLabel": "+12%",
+        "trendVariant": "warning",
+        "topToolLabel": "search_knowledge · 44%",
+        "lastActiveLabel": "Yesterday"
+      },
+      {
+        "project": "Competitive intel",
+        "owner": "priya@acme.com",
+        "chats": 9,
+        "messages": 64,
+        "tokensLabel": "218K",
+        "costLabel": "$0.83",
+        "costPerTurnLabel": "$0.013",
+        "trendLabel": "−4%",
+        "trendVariant": "success",
+        "topToolLabel": "search_knowledge · 51%",
+        "lastActiveLabel": "3 days ago"
+      },
+      {
+        "project": "Course enrollment",
+        "owner": "diego@acme.com",
+        "chats": 6,
+        "messages": 44,
+        "tokensLabel": "171K",
+        "costLabel": "$0.65",
+        "costPerTurnLabel": "$0.015",
+        "trendLabel": "+2%",
+        "trendVariant": "default",
+        "topToolLabel": "read_example · 38%",
+        "lastActiveLabel": "5 days ago"
+      },
+      {
+        "project": "Construction delays",
+        "owner": "carter@acme.com",
+        "chats": 7,
+        "messages": 52,
+        "tokensLabel": "164K",
+        "costLabel": "$0.61",
+        "costPerTurnLabel": "$0.012",
+        "trendLabel": "−18%",
+        "trendVariant": "success",
+        "topToolLabel": "read_standards · 29%",
+        "lastActiveLabel": "1 week ago"
+      },
+      {
+        "project": "Users table",
+        "owner": "diego@acme.com",
+        "chats": 4,
+        "messages": 28,
+        "tokensLabel": "78K",
+        "costLabel": "$0.31",
+        "costPerTurnLabel": "$0.011",
+        "trendLabel": "−42%",
+        "trendVariant": "success",
+        "topToolLabel": "read_block · 41%",
+        "lastActiveLabel": "2 weeks ago"
+      },
+      {
+        "project": "Pipeline review (draft)",
+        "owner": "jordan@acme.com",
+        "chats": 3,
+        "messages": 14,
+        "tokensLabel": "34K",
+        "costLabel": "$0.19",
+        "costPerTurnLabel": "$0.021",
+        "trendLabel": "new",
+        "trendVariant": "info",
+        "topToolLabel": "validate_spec · 47%",
+        "lastActiveLabel": "3 weeks ago"
+      }
+    ],
+    "teamStats": [
+      {
+        "label": "Active teammates",
+        "value": "4",
+        "sublabel": "of 6 seats used"
+      },
+      {
+        "label": "Busiest user",
+        "value": "priya@acme.com",
+        "sublabel": "469K tokens · $1.79"
+      },
+      {
+        "label": "Most projects",
+        "value": "carter@acme.com",
+        "sublabel": "2 projects owned"
+      }
+    ],
+    "userLeaderboard": [
+      {
+        "user": "priya@acme.com",
+        "roleLabel": "Developer",
+        "projects": 2,
+        "chats": 17,
+        "messages": 135,
+        "tokensLabel": "469K",
+        "costLabel": "$1.79",
+        "shareLabel": "37%",
+        "lastActiveLabel": "Yesterday",
+        "statusVariant": "success"
+      },
+      {
+        "user": "carter@acme.com",
+        "roleLabel": "Admin",
+        "projects": 2,
+        "chats": 18,
+        "messages": 144,
+        "tokensLabel": "488K",
+        "costLabel": "$1.89",
+        "shareLabel": "39%",
+        "lastActiveLabel": "42 min ago",
+        "statusVariant": "success"
+      },
+      {
+        "user": "diego@acme.com",
+        "roleLabel": "Developer",
+        "projects": 2,
+        "chats": 10,
+        "messages": 72,
+        "tokensLabel": "249K",
+        "costLabel": "$0.96",
+        "shareLabel": "20%",
+        "lastActiveLabel": "5 days ago",
+        "statusVariant": "success"
+      },
+      {
+        "user": "jordan@acme.com",
+        "roleLabel": "Viewer",
+        "projects": 1,
+        "chats": 3,
+        "messages": 14,
+        "tokensLabel": "34K",
+        "costLabel": "$0.19",
+        "shareLabel": "3%",
+        "lastActiveLabel": "3 weeks ago",
+        "statusVariant": "default"
+      }
+    ],
+    "userTokenChart": [
+      {
+        "User": "carter@acme.com",
+        "Tokens": 488000,
+        "Series": "Tokens"
+      },
+      {
+        "User": "priya@acme.com",
+        "Tokens": 469000,
+        "Series": "Tokens"
+      },
+      {
+        "User": "diego@acme.com",
+        "Tokens": 249000,
+        "Series": "Tokens"
+      },
+      {
+        "User": "jordan@acme.com",
+        "Tokens": 34000,
+        "Series": "Tokens"
+      }
+    ],
+    "userProjectMatrix": [
+      {
+        "user": "carter@acme.com",
+        "project": "Restaurant inventory",
+        "roleLabel": "Owner",
+        "messages": 92,
+        "tokensLabel": "324K"
+      },
+      {
+        "user": "carter@acme.com",
+        "project": "Construction delays",
+        "roleLabel": "Owner",
+        "messages": 52,
+        "tokensLabel": "164K"
+      },
+      {
+        "user": "priya@acme.com",
+        "project": "Fleet maintenance",
+        "roleLabel": "Owner",
+        "messages": 71,
+        "tokensLabel": "251K"
+      },
+      {
+        "user": "priya@acme.com",
+        "project": "Competitive intel",
+        "roleLabel": "Owner",
+        "messages": 64,
+        "tokensLabel": "218K"
+      },
+      {
+        "user": "diego@acme.com",
+        "project": "Course enrollment",
+        "roleLabel": "Owner",
+        "messages": 44,
+        "tokensLabel": "171K"
+      },
+      {
+        "user": "diego@acme.com",
+        "project": "Users table",
+        "roleLabel": "Owner",
+        "messages": 28,
+        "tokensLabel": "78K"
+      },
+      {
+        "user": "jordan@acme.com",
+        "project": "Pipeline review (draft)",
+        "roleLabel": "Owner",
+        "messages": 14,
+        "tokensLabel": "34K"
+      }
+    ],
+    "toolStats": [
+      {
+        "tool": "search_knowledge",
+        "calls": 412,
+        "successRateLabel": "99.8%",
+        "statusVariant": "success",
+        "avgMsLabel": "180 ms"
+      },
+      {
+        "tool": "read_standards",
+        "calls": 287,
+        "successRateLabel": "100%",
+        "statusVariant": "success",
+        "avgMsLabel": "90 ms"
+      },
+      {
+        "tool": "read_example",
+        "calls": 214,
+        "successRateLabel": "100%",
+        "statusVariant": "success",
+        "avgMsLabel": "110 ms"
+      },
+      {
+        "tool": "read_block",
+        "calls": 168,
+        "successRateLabel": "100%",
+        "statusVariant": "success",
+        "avgMsLabel": "95 ms"
+      },
+      {
+        "tool": "validate_spec",
+        "calls": 96,
+        "successRateLabel": "92.7%",
+        "statusVariant": "warning",
+        "avgMsLabel": "240 ms"
+      },
+      {
+        "tool": "write_spec",
+        "calls": 54,
+        "successRateLabel": "98.1%",
+        "statusVariant": "success",
+        "avgMsLabel": "310 ms"
+      }
+    ],
+    "recentEvents": [
+      {
+        "timeLabel": "42 min ago",
+        "project": "Restaurant inventory",
+        "summary": "Chat turn complete · 12.4K tokens · $0.04",
+        "statusVariant": "success"
+      },
+      {
+        "timeLabel": "1 hr ago",
+        "project": "Restaurant inventory",
+        "summary": "validate_spec returned 2 warnings",
+        "statusVariant": "warning"
+      },
+      {
+        "timeLabel": "3 hr ago",
+        "project": "Fleet maintenance",
+        "summary": "Chat turn complete · 8.9K tokens · $0.03",
+        "statusVariant": "success"
+      },
+      {
+        "timeLabel": "Yesterday",
+        "project": "Competitive intel",
+        "summary": "New chat created",
+        "statusVariant": "default"
+      },
+      {
+        "timeLabel": "Yesterday",
+        "project": "Fleet maintenance",
+        "summary": "Spec exported as design doc",
+        "statusVariant": "default"
+      },
+      {
+        "timeLabel": "2 days ago",
+        "project": "Course enrollment",
+        "summary": "Chat turn errored · model overloaded",
+        "statusVariant": "error"
+      }
+    ]
+  },
+  "root": "settings-root",
+  "elements": {
+    "heading": {
+      "type": "Heading",
+      "children": "Studio settings & usage"
+    },
+    "text": {
+      "type": "Text",
+      "variant": "microcopy",
+      "children": "Manage your HubSpot connection and see how the Studio assistant is spending tokens for this portal."
+    },
+    "page-header": {
+      "type": "Flex",
+      "name": "page-header",
+      "direction": "column",
+      "gap": "xs",
+      "children": [
+        "heading",
+        "text"
+      ]
+    },
+    "text-1": {
+      "type": "Text",
+      "format": {
+        "fontWeight": "demibold"
+      },
+      "children": "$data.install.portalName"
+    },
+    "text-2": {
+      "type": "Text",
+      "variant": "microcopy",
+      "children": "{{data.install.hubIdLabel}} · {{data.install.authorizedUser}}"
+    },
+    "text-3": {
+      "type": "Text",
+      "variant": "microcopy",
+      "children": "$data.install.installedOnLabel"
+    },
+    "flex-2": {
+      "type": "Flex",
+      "direction": "column",
+      "gap": "xs",
+      "children": [
+        "text-1",
+        "text-2",
+        "text-3"
+      ]
+    },
+    "tag": {
+      "type": "Tag",
+      "variant": "$data.install.tokenStatusVariant",
+      "children": "Connection {{data.install.tokenStatusLabel}}"
+    },
+    "flex-1": {
+      "type": "Flex",
+      "justify": "between",
+      "align": "center",
+      "children": [
+        "flex-2",
+        "tag"
+      ]
+    },
+    "flex": {
+      "type": "Flex",
+      "direction": "column",
+      "gap": "sm",
+      "children": [
+        "flex-1"
+      ]
+    },
+    "portal-tile": {
+      "type": "Tile",
+      "name": "portal-tile",
+      "children": [
+        "flex"
+      ]
+    },
+    "text-4": {
+      "type": "Text",
+      "variant": "microcopy",
+      "children": "$stat.label"
+    },
+    "heading-1": {
+      "type": "Heading",
+      "children": "$stat.value"
+    },
+    "text-5": {
+      "type": "Text",
+      "variant": "microcopy",
+      "children": "$stat.sublabel"
+    },
+    "flex-3": {
+      "type": "Flex",
+      "direction": "column",
+      "gap": "xs",
+      "children": [
+        "text-4",
+        "heading-1",
+        "text-5"
+      ]
+    },
+    "overview-stats": {
+      "type": "AutoGrid",
+      "name": "overview-stats",
+      "minColumnWidth": "200px",
+      "gap": "md",
+      "children": [
+        {
+          "$forEach": "$data.overviewStats",
+          "as": "stat",
+          "render": {
+            "type": "Tile",
+            "children": [
+              "flex-3"
+            ]
+          }
+        }
+      ]
+    },
+    "last-activity-alert": {
+      "type": "Alert",
+      "name": "last-activity-alert",
+      "title": "Recent activity",
+      "variant": "info",
+      "children": "$data.lastActivityLabel"
+    },
+    "overview-body": {
+      "type": "Flex",
+      "name": "overview-body",
+      "direction": "column",
+      "gap": "lg",
+      "children": [
+        "portal-tile",
+        "overview-stats",
+        "last-activity-alert"
+      ]
+    },
+    "tab": {
+      "type": "Tab",
+      "tabId": "overview",
+      "title": "Overview",
+      "children": [
+        "overview-body"
+      ]
+    },
+    "heading-2": {
+      "type": "Heading",
+      "level": 4,
+      "children": "Token consumption"
+    },
+    "usage-window-toggle": {
+      "type": "ToggleGroup",
+      "name": "usage-window-toggle",
+      "defaultSelected": "30d",
+      "children": [
+        {
+          "$forEach": "$data.usageWindows",
+          "as": "window",
+          "render": {
+            "type": "Toggle",
+            "toggleId": "$window.value",
+            "children": "$window.label"
+          }
+        }
+      ]
+    },
+    "usage-window-bar": {
+      "type": "Flex",
+      "name": "usage-window-bar",
+      "justify": "between",
+      "align": "center",
+      "children": [
+        "heading-2",
+        "usage-window-toggle"
+      ]
+    },
+    "text-6": {
+      "type": "Text",
+      "variant": "microcopy",
+      "children": "$stat.label"
+    },
+    "heading-3": {
+      "type": "Heading",
+      "children": "$stat.value"
+    },
+    "text-7": {
+      "type": "Text",
+      "variant": "microcopy",
+      "children": "$stat.sublabel"
+    },
+    "flex-4": {
+      "type": "Flex",
+      "direction": "column",
+      "gap": "xs",
+      "children": [
+        "text-6",
+        "heading-3",
+        "text-7"
+      ]
+    },
+    "usage-headline": {
+      "type": "AutoGrid",
+      "name": "usage-headline",
+      "minColumnWidth": "180px",
+      "gap": "md",
+      "children": [
+        {
+          "$forEach": "$data.usageHeadlineStats",
+          "as": "stat",
+          "render": {
+            "type": "Tile",
+            "children": [
+              "flex-4"
+            ]
+          }
+        }
+      ]
+    },
+    "heading-4": {
+      "type": "Heading",
+      "level": 5,
+      "children": "Daily token volume"
+    },
+    "linechart": {
+      "type": "LineChart",
+      "data": "$data.usageChart",
+      "categoryAxis": "Day",
+      "valueAxis": "Tokens",
+      "groupBy": "Series",
+      "showLegend": true
+    },
+    "flex-5": {
+      "type": "Flex",
+      "direction": "column",
+      "gap": "sm",
+      "children": [
+        "heading-4",
+        "linechart"
+      ]
+    },
+    "usage-chart-tile": {
+      "type": "Tile",
+      "name": "usage-chart-tile",
+      "children": [
+        "flex-5"
+      ]
+    },
+    "project-usage-table": {
+      "type": "DataTable",
+      "name": "project-usage-table",
+      "title": "Usage by project",
+      "data": "$data.projectUsage",
+      "pageSize": 10,
+      "columns": [
+        {
+          "key": "project",
+          "label": "Project",
+          "width": "220px"
+        },
+        {
+          "key": "owner",
+          "label": "Owner",
+          "width": "180px"
+        },
+        {
+          "key": "chats",
+          "label": "Chats",
+          "cellWidth": "min"
+        },
+        {
+          "key": "messages",
+          "label": "Msgs",
+          "cellWidth": "min"
+        },
+        {
+          "key": "tokensLabel",
+          "label": "Tokens",
+          "cellWidth": "min"
+        },
+        {
+          "key": "costLabel",
+          "label": "Cost",
+          "cellWidth": "min"
+        },
+        {
+          "key": "costPerTurnLabel",
+          "label": "Per turn",
+          "cellWidth": "min"
+        },
+        {
+          "key": "trendLabel",
+          "label": "Δ vs prev.",
+          "cellWidth": "min",
+          "render": {
+            "type": "Tag",
+            "variant": "$item.trendVariant",
+            "children": "$item.trendLabel"
+          }
+        },
+        {
+          "key": "topToolLabel",
+          "label": "Top tool"
+        },
+        {
+          "key": "lastActiveLabel",
+          "label": "Last active"
+        }
+      ]
+    },
+    "usage-body": {
+      "type": "Flex",
+      "name": "usage-body",
+      "direction": "column",
+      "gap": "lg",
+      "children": [
+        "usage-window-bar",
+        "usage-headline",
+        "usage-chart-tile",
+        "project-usage-table"
+      ]
+    },
+    "tab-1": {
+      "type": "Tab",
+      "tabId": "usage",
+      "title": "Usage",
+      "children": [
+        "usage-body"
+      ]
+    },
+    "text-8": {
+      "type": "Text",
+      "variant": "microcopy",
+      "children": "$stat.label"
+    },
+    "heading-5": {
+      "type": "Heading",
+      "level": 4,
+      "children": "$stat.value"
+    },
+    "text-9": {
+      "type": "Text",
+      "variant": "microcopy",
+      "children": "$stat.sublabel"
+    },
+    "flex-6": {
+      "type": "Flex",
+      "direction": "column",
+      "gap": "xs",
+      "children": [
+        "text-8",
+        "heading-5",
+        "text-9"
+      ]
+    },
+    "team-stats": {
+      "type": "AutoGrid",
+      "name": "team-stats",
+      "minColumnWidth": "220px",
+      "gap": "md",
+      "children": [
+        {
+          "$forEach": "$data.teamStats",
+          "as": "stat",
+          "render": {
+            "type": "Tile",
+            "children": [
+              "flex-6"
+            ]
+          }
+        }
+      ]
+    },
+    "heading-6": {
+      "type": "Heading",
+      "level": 5,
+      "children": "Token spend by user (last 30 days)"
+    },
+    "barchart": {
+      "type": "BarChart",
+      "data": "$data.userTokenChart",
+      "categoryAxis": "User",
+      "valueAxis": "Tokens",
+      "groupBy": "Series",
+      "orientation": "horizontal",
+      "showLegend": false
+    },
+    "flex-7": {
+      "type": "Flex",
+      "direction": "column",
+      "gap": "sm",
+      "children": [
+        "heading-6",
+        "barchart"
+      ]
+    },
+    "user-token-chart-tile": {
+      "type": "Tile",
+      "name": "user-token-chart-tile",
+      "children": [
+        "flex-7"
+      ]
+    },
+    "user-leaderboard": {
+      "type": "DataTable",
+      "name": "user-leaderboard",
+      "title": "Leaderboard",
+      "data": "$data.userLeaderboard",
+      "pageSize": 10,
+      "columns": [
+        {
+          "key": "user",
+          "label": "User",
+          "width": "220px"
+        },
+        {
+          "key": "roleLabel",
+          "label": "Role",
+          "cellWidth": "min",
+          "render": {
+            "type": "Tag",
+            "variant": "default",
+            "children": "$item.roleLabel"
+          }
+        },
+        {
+          "key": "projects",
+          "label": "Projects",
+          "cellWidth": "min"
+        },
+        {
+          "key": "chats",
+          "label": "Chats",
+          "cellWidth": "min"
+        },
+        {
+          "key": "messages",
+          "label": "Msgs",
+          "cellWidth": "min"
+        },
+        {
+          "key": "tokensLabel",
+          "label": "Tokens",
+          "cellWidth": "min"
+        },
+        {
+          "key": "costLabel",
+          "label": "Cost",
+          "cellWidth": "min"
+        },
+        {
+          "key": "shareLabel",
+          "label": "Share",
+          "cellWidth": "min"
+        },
+        {
+          "key": "lastActiveLabel",
+          "label": "Last active"
+        }
+      ]
+    },
+    "user-project-matrix": {
+      "type": "DataTable",
+      "name": "user-project-matrix",
+      "title": "Who touches what",
+      "data": "$data.userProjectMatrix",
+      "pageSize": 20,
+      "columns": [
+        {
+          "key": "user",
+          "label": "User",
+          "width": "200px"
+        },
+        {
+          "key": "project",
+          "label": "Project",
+          "width": "240px"
+        },
+        {
+          "key": "roleLabel",
+          "label": "Role",
+          "cellWidth": "min",
+          "render": {
+            "type": "Tag",
+            "variant": "default",
+            "children": "$item.roleLabel"
+          }
+        },
+        {
+          "key": "messages",
+          "label": "Messages",
+          "cellWidth": "min"
+        },
+        {
+          "key": "tokensLabel",
+          "label": "Tokens",
+          "cellWidth": "min"
+        }
+      ]
+    },
+    "team-body": {
+      "type": "Flex",
+      "name": "team-body",
+      "direction": "column",
+      "gap": "lg",
+      "children": [
+        "team-stats",
+        "user-token-chart-tile",
+        "user-leaderboard",
+        "user-project-matrix"
+      ]
+    },
+    "tab-2": {
+      "type": "Tab",
+      "tabId": "team",
+      "title": "Team",
+      "children": [
+        "team-body"
+      ]
+    },
+    "tool-stats-table": {
+      "type": "DataTable",
+      "name": "tool-stats-table",
+      "title": "Assistant tool calls (last 30 days)",
+      "data": "$data.toolStats",
+      "columns": [
+        {
+          "key": "tool",
+          "label": "Tool",
+          "width": "220px"
+        },
+        {
+          "key": "calls",
+          "label": "Calls",
+          "cellWidth": "min"
+        },
+        {
+          "key": "successRateLabel",
+          "label": "Success rate",
+          "cellWidth": "min",
+          "render": {
+            "type": "Tag",
+            "variant": "$item.statusVariant",
+            "children": "$item.successRateLabel"
+          }
+        },
+        {
+          "key": "avgMsLabel",
+          "label": "Avg latency",
+          "cellWidth": "min"
+        }
+      ]
+    },
+    "heading-7": {
+      "type": "Heading",
+      "level": 5,
+      "children": "Recent events"
+    },
+    "tag-1": {
+      "type": "Tag",
+      "variant": "$event.statusVariant",
+      "children": "$event.timeLabel"
+    },
+    "text-10": {
+      "type": "Text",
+      "format": {
+        "fontWeight": "demibold"
+      },
+      "children": "$event.project"
+    },
+    "text-11": {
+      "type": "Text",
+      "variant": "microcopy",
+      "children": "$event.summary"
+    },
+    "flex-10": {
+      "type": "Flex",
+      "direction": "column",
+      "gap": "none",
+      "children": [
+        "text-10",
+        "text-11"
+      ]
+    },
+    "flex-9": {
+      "type": "Flex",
+      "direction": "column",
+      "gap": "xs",
+      "children": [
+        {
+          "$forEach": "$data.recentEvents",
+          "as": "event",
+          "render": {
+            "type": "Flex",
+            "align": "center",
+            "gap": "sm",
+            "children": [
+              "tag-1",
+              "flex-10"
+            ]
+          }
+        }
+      ]
+    },
+    "flex-8": {
+      "type": "Flex",
+      "direction": "column",
+      "gap": "sm",
+      "children": [
+        "heading-7",
+        "flex-9"
+      ]
+    },
+    "recent-events-tile": {
+      "type": "Tile",
+      "name": "recent-events-tile",
+      "children": [
+        "flex-8"
+      ]
+    },
+    "activity-body": {
+      "type": "Flex",
+      "name": "activity-body",
+      "direction": "column",
+      "gap": "lg",
+      "children": [
+        "tool-stats-table",
+        "recent-events-tile"
+      ]
+    },
+    "tab-3": {
+      "type": "Tab",
+      "tabId": "activity",
+      "title": "Activity",
+      "children": [
+        "activity-body"
+      ]
+    },
+    "heading-8": {
+      "type": "Heading",
+      "level": 5,
+      "children": "OAuth scopes granted"
+    },
+    "text-12": {
+      "type": "Text",
+      "variant": "microcopy",
+      "children": "These are the HubSpot permissions this portal authorized when installing Studio."
+    },
+    "scope-tags": {
+      "type": "Flex",
+      "name": "scope-tags",
+      "wrap": "wrap",
+      "gap": "xs",
+      "children": [
+        {
+          "$forEach": "$data.scopes",
+          "as": "scope",
+          "render": {
+            "type": "Tag",
+            "variant": "default",
+            "children": "$scope.label"
+          }
+        }
+      ]
+    },
+    "flex-11": {
+      "type": "Flex",
+      "direction": "column",
+      "gap": "sm",
+      "children": [
+        "heading-8",
+        "text-12",
+        "scope-tags"
+      ]
+    },
+    "oauth-scopes-tile": {
+      "type": "Tile",
+      "name": "oauth-scopes-tile",
+      "children": [
+        "flex-11"
+      ]
+    },
+    "heading-9": {
+      "type": "Heading",
+      "level": 5,
+      "children": "Access token"
+    },
+    "text-13": {
+      "type": "Text",
+      "variant": "microcopy",
+      "children": "$data.install.tokenExpiresLabel"
+    },
+    "flex-13": {
+      "type": "Flex",
+      "direction": "column",
+      "gap": "xs",
+      "children": [
+        "heading-9",
+        "text-13"
+      ]
+    },
+    "tag-2": {
+      "type": "Tag",
+      "variant": "$data.install.tokenStatusVariant",
+      "children": "$data.install.tokenStatusLabel"
+    },
+    "flex-12": {
+      "type": "Flex",
+      "justify": "between",
+      "align": "center",
+      "children": [
+        "flex-13",
+        "tag-2"
+      ]
+    },
+    "token-status-tile": {
+      "type": "Tile",
+      "name": "token-status-tile",
+      "children": [
+        "flex-12"
+      ]
+    },
+    "heading-10": {
+      "type": "Heading",
+      "level": 5,
+      "children": "About"
+    },
+    "text-14": {
+      "type": "Text",
+      "children": "$data.install.appVersionLabel"
+    },
+    "text-15": {
+      "type": "Text",
+      "variant": "microcopy",
+      "children": "$data.install.workerDeployedLabel"
+    },
+    "flex-14": {
+      "type": "Flex",
+      "direction": "column",
+      "gap": "xs",
+      "children": [
+        "heading-10",
+        "text-14",
+        "text-15"
+      ]
+    },
+    "about-tile": {
+      "type": "Tile",
+      "name": "about-tile",
+      "children": [
+        "flex-14"
+      ]
+    },
+    "heading-11": {
+      "type": "Heading",
+      "level": 5,
+      "children": "Danger zone"
+    },
+    "text-16": {
+      "type": "Text",
+      "variant": "microcopy",
+      "children": "Disconnecting removes the stored OAuth tokens. Your projects, chats, and specs stay in place and will reappear after reinstalling."
+    },
+    "button": {
+      "type": "Button",
+      "variant": "secondary",
+      "children": "Reauthorize HubSpot"
+    },
+    "button-1": {
+      "type": "Button",
+      "variant": "destructive",
+      "children": "Disconnect portal"
+    },
+    "flex-16": {
+      "type": "Flex",
+      "gap": "sm",
+      "children": [
+        "button",
+        "button-1"
+      ]
+    },
+    "flex-15": {
+      "type": "Flex",
+      "direction": "column",
+      "gap": "sm",
+      "children": [
+        "heading-11",
+        "text-16",
+        "flex-16"
+      ]
+    },
+    "danger-zone-tile": {
+      "type": "Tile",
+      "name": "danger-zone-tile",
+      "children": [
+        "flex-15"
+      ]
+    },
+    "account-body": {
+      "type": "Flex",
+      "name": "account-body",
+      "direction": "column",
+      "gap": "lg",
+      "children": [
+        "oauth-scopes-tile",
+        "token-status-tile",
+        "about-tile",
+        "danger-zone-tile"
+      ]
+    },
+    "tab-4": {
+      "type": "Tab",
+      "tabId": "account",
+      "title": "Account",
+      "children": [
+        "account-body"
+      ]
+    },
+    "settings-tabs": {
+      "type": "Tabs",
+      "name": "settings-tabs",
+      "defaultSelected": "overview",
+      "children": [
+        "tab",
+        "tab-1",
+        "tab-2",
+        "tab-3",
+        "tab-4"
+      ]
+    },
+    "settings-root": {
+      "type": "Flex",
+      "name": "settings-root",
+      "direction": "column",
+      "gap": "lg",
+      "children": [
+        "page-header",
+        "settings-tabs"
+      ]
+    }
+  }
+}

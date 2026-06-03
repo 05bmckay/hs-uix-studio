@@ -1,0 +1,50 @@
+# Copy to .dev.vars for local `wrangler dev`. Do NOT commit .dev.vars.
+# Secrets listed here mirror what you set in production via
+# `wrangler secret put <NAME>`. Non-secret config lives in [vars] in wrangler.toml.
+
+# Anthropic API key — required when CHAT_MODEL starts with `anthropic/`.
+# https://console.anthropic.com/settings/keys
+ANTHROPIC_API_KEY="sk-ant-..."
+
+# Only required when CHAT_MODEL starts with `workers-ai/`.
+# Needs a Cloudflare API token with Workers AI read scope.
+CLOUDFLARE_API_TOKEN=""
+
+# Only required when CHAT_MODEL starts with `openai/`.
+OPENAI_API_KEY=""
+
+# Cloudflare AI Gateway — all primary chat/export calls route through this for
+# observability, caching, and rate limiting. Create at
+# https://dash.cloudflare.com/?to=/:account/ai/ai-gateway
+CLOUDFLARE_ACCOUNT_ID=""
+CLOUDFLARE_AI_GATEWAY_ID="hs-uix-studio"
+# Required when Authenticated Gateway is enabled.
+CLOUDFLARE_AI_GATEWAY_TOKEN=""
+
+# HubSpot developer app credentials — create at
+# https://developers.hubspot.com/ → Apps → Create app
+HUBSPOT_CLIENT_ID=""
+HUBSPOT_CLIENT_SECRET=""
+
+# Space-separated OAuth scopes the app requests. Must match app-hsmeta.json.
+HUBSPOT_APP_SCOPES="oauth crm.objects.users.read"
+
+# 32-byte key used to AES-GCM encrypt OAuth tokens at rest in D1.
+# Generate with: `openssl rand -base64 32`
+TOKEN_ENCRYPTION_KEY=""
+
+# Public origin of this worker (no trailing slash). Used to build the
+# OAuth redirect_uri passed to HubSpot and to enable local dev-header auth.
+# Local dev: http://localhost:8787
+# Prod: https://hs-uix-studio-worker.<account>.workers.dev
+WORKER_PUBLIC_URL="http://localhost:8787"
+
+# Local-only identity fallback for hs project dev's backend proxy. Set this to
+# the HubSpot account/portal ID where you're testing, then install locally via
+# http://localhost:8787/oauth/install so local D1 has a matching install row.
+LOCAL_HUB_ID=""
+LOCAL_USER_ID="0"
+# Set true to skip requiring an OAuth install row in local D1. Useful for
+# `hs project dev` against a local worker because chat/spec/project routes do
+# not need HubSpot API tokens.
+LOCAL_DEV_AUTH_BYPASS="true"

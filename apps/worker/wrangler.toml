@@ -1,0 +1,100 @@
+name = "hs-uix-studio-worker"
+main = "src/index.ts"
+compatibility_date = "2026-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Public distribution: worker URL will be the OAuth redirect target and the
+# host the HubSpot UI extension calls via hubspot.fetch.
+workers_dev = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "studio"
+database_id = "d99fa7ab-4afb-444a-8c85-3693f35e2972"
+migrations_dir = "./migrations"
+
+# KV for short-lived OAuth state nonces (CSRF check between /install → /callback).
+[[kv_namespaces]]
+binding = "OAUTH_STATE"
+id = "6234e603b7e346eea23af13d39c97265"
+
+[[durable_objects.bindings]]
+name = "EXPORT_STREAM"
+class_name = "ExportStream"
+
+[[durable_objects.bindings]]
+name = "RELAY"
+class_name = "StudioRelay"
+
+[[durable_objects.bindings]]
+name = "STUDIO_PROJECT_AGENT"
+class_name = "StudioProjectAgent"
+
+# Workers AI binding — used for cheap background tasks like chat-title
+# generation and as a direct path for Kimi/etc. in /debug. The primary chat
+# model runs through the AI Gateway unified (OpenAI-compat) endpoint; see
+# src/lib/llm.ts.
+[ai]
+binding = "AI"
+
+# v1 previously created the legacy ChatStream class. Chat streaming now runs
+# inside StudioProjectAgent and is exposed through StudioRelay.
+
+[[migrations]]
+tag = "v2"
+new_classes = ["ExportStream"]
+
+[[migrations]]
+tag = "v3"
+new_classes = ["StudioRelay"]
+
+[[migrations]]
+tag = "v4"
+new_sqlite_classes = ["StudioProjectAgent"]
+
+[[migrations]]
+tag = "v5"
+deleted_classes = ["ChatStream"]
+
+# Load .md files as raw strings (e.g. system-prompt markdown in src/prompts.ts).
+[[rules]]
+type = "Text"
+globs = ["**/*.md"]
+fallthrough = true
+
+# Secrets (set via `wrangler secret put <NAME>`):
+#   ANTHROPIC_API_KEY          — required when CHAT_MODEL uses anthropic/
+#   CLOUDFLARE_API_TOKEN       — required when CHAT_MODEL uses workers-ai/
+#                                (Workers AI read scope)
+#   OPENAI_API_KEY             — required when CHAT_MODEL uses openai/
+#   CLOUDFLARE_ACCOUNT_ID      — for AI Gateway URL
+#   CLOUDFLARE_AI_GATEWAY_ID   — AI Gateway slug (e.g. "hs-uix-studio")
+#   CLOUDFLARE_AI_GATEWAY_TOKEN — Gateway auth token (required when
+#                                Authenticated Gateway is on)
+#   HUBSPOT_CLIENT_ID          — from HubSpot developer app
+#   HUBSPOT_CLIENT_SECRET      — from HubSpot developer app
+#   HUBSPOT_APP_SCOPES         — space-separated scopes string
+#                                Required: oauth crm.objects.users.read
+#                                (users scope powers the Settings & Usage
+#                                page — resolves project owner / team rows
+#                                from numeric IDs to names + emails)
+#   TOKEN_ENCRYPTION_KEY       — 32-byte base64 key for AES-GCM at rest
+#   WORKER_PUBLIC_URL          — e.g. https://hs-uix-studio-worker.<acct>.workers.dev
+
+[vars]
+# Non-secret defaults; override per-env.
+# Prefixed model string routed by the AI Gateway unified endpoint.
+# Swap backends with a single string change:
+#   anthropic/claude-sonnet-4-6
+#   anthropic/claude-opus-4-7
+#   workers-ai/@cf/moonshotai/kimi-k2.6
+#   openai/gpt-4o-mini
+CHAT_MODEL = "anthropic/claude-sonnet-4-6"
+STREAM_POLL_INTERVAL_MS = "400"
+
+# Raise CPU cap — long tool-heavy turns (multiple patch retries, reading
+# large standards docs) can exceed the 30s default. Paid plan allows up to
+# 300000ms (5 min). This is per-invocation CPU, not wall time; wall time is
+# unbounded for DO-backed async work.
+[limits]
+cpu_ms = 300000

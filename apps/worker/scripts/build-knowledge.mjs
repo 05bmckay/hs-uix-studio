@@ -1,0 +1,166 @@
+// Scans apps/worker/knowledge/ and emits src/tools/knowledge.generated.ts
+// with every standards file, block, and example wired up. Run automatically
+// by the `predev` and `predeploy` npm scripts — so adding a doc/block/example
+// is "drop the file and run wrangler" with zero code changes.
+//
+// Convention:
+//   knowledge/standards/*.md            → STANDARDS (raw markdown)
+//   knowledge/standards/COPIED_FROM.md  → skipped (provenance note)
+//   knowledge/standards/common-components/*.md → also included, key = "common-components/<name>.md"
+//   knowledge/blocks/*.json             → BLOCKS   (parsed JSON)
+//   knowledge/examples/*.json           → EXAMPLES (parsed JSON)
+//
+// Optional per-standards-file description: if a neighboring
+// knowledge/standards/INDEX.md references the file with a one-line summary
+// we can surface it in list_knowledge, but for now we just derive from the
+// filename.
+
+import { readdirSync, readFileSync, writeFileSync, mkdirSync, statSync } from "node:fs";
+import { join, relative, extname, basename, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const here = dirname(fileURLToPath(import.meta.url));
+const WORKER_ROOT = join(here, "..");
+const KNOWLEDGE_DIR = join(WORKER_ROOT, "knowledge");
+const OUT_FILE = join(WORKER_ROOT, "src/tools/knowledge.generated.ts");
+
+const SKIPPED_STANDARDS = new Set(["COPIED_FROM.md"]);
+
+function listDir(dir, ext, { recursive = false } = {}) {
+  const out = [];
+  for (const entry of readdirSync(dir)) {
+    const full = join(dir, entry);
+    const st = statSync(full);
+    if (st.isDirectory()) {
+      if (recursive) out.push(...listDir(full, ext, { recursive }));
+      continue;
+    }
+    if (extname(entry) === ext) out.push(full);
+  }
+  return out.sort();
+}
+
+function keyFor(file, baseDir) {
+  return relative(baseDir, file).split("\\").join("/");
+}
+
+// Hand-curated one-liners per standards file. Keep synced with knowledge/standards/
+// when adding a new file — the default fallback is usable but vague.
+const STANDARDS_ONE_LINERS = {
+  "INDEX.md": "Task → standards-file map and card archetype catalog",
+  "RULES.md": "All hard rules in one table (error/warn severities) — read before emitting",
+  "COMPONENTS.md": "Full component catalog with one-line descriptions",
+  "buttons-and-actions.md": "Button vs Link vs ButtonRow, action descriptors, overlay-opening patterns",
+  "card-building-process.md": "Step-by-step process for building a new card (archetype → layout → fill)",
+  "crm-components.md": "CrmAssociationTable, CrmPropertyList, and other CRM-specific components",
+  "data-and-state.md": "Spec data/state conventions, derivation policy, what to precompute vs express",
+  "data-display.md": "Statistics, DescriptionList, ProgressBar, ScoreCircle, charts — KPI patterns",
+  "forms.md": "Form/Field/Input patterns — use hs-uix/form for anything non-trivial",
+  "gotchas.md": "Common mistakes: Divider stacking, Spacer vs gap, Icon-in-Text alignment, etc.",
+  "kanban.md": "hs-uix/kanban board patterns for stage/pipeline cards",
+  "layout.md": "Flex, AutoGrid, Box, Tile, Inline — layout primitives and when to use each",
+  "media.md": "Icon catalog, Image, Illustration — valid names and usage",
+  "navigation.md": "Tabs, StepIndicator, Accordion — multi-view and step-flow patterns",
+  "overlays.md": "Panel/Modal structure, Body/Footer wrappers, footer button layout",
+  "states.md": "Loading, empty, error, loaded — when to show Alert, when ProgressBar is enough",
+  "status-and-tags.md": "StatusTag, Tag, variant selection (error/warning/success/info)",
+  "tables.md": "DataTable patterns — sortable columns, filters, totals, renderCell with $render",
+  "typography.md": "Heading, Text, variants, format — typography rules and microcopy",
+  "utils.md": "Utility helpers and formatters",
+};
+
+function friendlyDescription(file) {
+  const key = keyFor(file, join(KNOWLEDGE_DIR, "standards"));
+  if (STANDARDS_ONE_LINERS[key]) return STANDARDS_ONE_LINERS[key];
+  const name = basename(file).replace(/\.md$/, "");
+  return `${name.replace(/-/g, " ")} — see file for details`;
+}
+
+function exampleDescription(file) {
+  try {
+    const content = JSON.parse(readFileSync(file, "utf8"));
+    const desc = content?.meta?.description;
+    if (typeof desc === "string" && desc.trim().length > 0) {
+      // First sentence, capped at ~140 chars so the index stays scannable.
+      const firstSentence = desc.split(/(?<=[.!?])\s/)[0];
+      return firstSentence.length > 140
+        ? firstSentence.slice(0, 137) + "..."
+        : firstSentence;
+    }
+  } catch {
+    // fall through
+  }
+  return basename(file, ".json").replace(/-/g, " ");
+}
+
+const standardsFiles = listDir(join(KNOWLEDGE_DIR, "standards"), ".md", {
+  recursive: true,
+}).filter((f) => !SKIPPED_STANDARDS.has(basename(f)));
+
+const blockFiles = listDir(join(KNOWLEDGE_DIR, "blocks"), ".json");
+const exampleFiles = listDir(join(KNOWLEDGE_DIR, "examples"), ".json");
+
+const lines = [];
+lines.push("// AUTO-GENERATED by scripts/build-knowledge.mjs — do not edit by hand.");
+lines.push("// Re-run via `npm run knowledge:build` (also runs on predev/predeploy).");
+lines.push("");
+lines.push("interface Block {");
+lines.push("  name: string;");
+lines.push("  description: string;");
+lines.push("  componentsUsed?: string[];");
+lines.push("  dataShape?: unknown;");
+lines.push("  node: unknown;");
+lines.push("}");
+lines.push("");
+
+// Content is inlined as string/JSON literals so the bundler doesn't need
+// .md / ?raw loader rules. Keeps the generated file self-contained.
+
+lines.push("export const STANDARDS: Record<string, string> = {");
+standardsFiles.forEach((f) => {
+  const key = keyFor(f, join(KNOWLEDGE_DIR, "standards"));
+  const content = readFileSync(f, "utf8");
+  lines.push(`  ${JSON.stringify(key)}: ${JSON.stringify(content)},`);
+});
+lines.push("};");
+lines.push("");
+
+lines.push("export const STANDARDS_DESCRIPTIONS: Record<string, string> = {");
+standardsFiles.forEach((f) => {
+  const key = keyFor(f, join(KNOWLEDGE_DIR, "standards"));
+  lines.push(`  ${JSON.stringify(key)}: ${JSON.stringify(friendlyDescription(f))},`);
+});
+lines.push("};");
+lines.push("");
+
+lines.push("export const BLOCKS: Record<string, Block> = {");
+blockFiles.forEach((f) => {
+  const key = basename(f, ".json");
+  const content = JSON.parse(readFileSync(f, "utf8"));
+  lines.push(`  ${JSON.stringify(key)}: ${JSON.stringify(content)} as Block,`);
+});
+lines.push("};");
+lines.push("");
+
+lines.push("export const EXAMPLES: Record<string, unknown> = {");
+exampleFiles.forEach((f) => {
+  const key = basename(f, ".json");
+  const content = JSON.parse(readFileSync(f, "utf8"));
+  lines.push(`  ${JSON.stringify(key)}: ${JSON.stringify(content)},`);
+});
+lines.push("};");
+lines.push("");
+
+lines.push("export const EXAMPLES_DESCRIPTIONS: Record<string, string> = {");
+exampleFiles.forEach((f) => {
+  const key = basename(f, ".json");
+  lines.push(`  ${JSON.stringify(key)}: ${JSON.stringify(exampleDescription(f))},`);
+});
+lines.push("};");
+lines.push("");
+
+mkdirSync(dirname(OUT_FILE), { recursive: true });
+writeFileSync(OUT_FILE, lines.join("\n"));
+console.log(
+  `knowledge: wrote ${OUT_FILE} — ${standardsFiles.length} standards, ${blockFiles.length} blocks, ${exampleFiles.length} examples`,
+);

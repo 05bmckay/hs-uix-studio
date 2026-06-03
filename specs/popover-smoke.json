@@ -1,0 +1,139 @@
+{
+  "meta": {
+    "name": "Popover Smoke Test",
+    "description": "Probes the experimental Popover component placed inside the `overlay` prop of Button/Link triggers — same trigger contract as Modal/Panel/Tooltip. Renderer auto-wraps Popover children in a compact Tile so content gets default padding. Verifies placement, variant, arrowSize, and showCloseButton actually take effect.",
+    "surface": "crm.record.tab",
+    "object": "deals"
+  },
+  "state": {},
+  "data": {},
+  "root": "card-root",
+  "elements": {
+    "card-root": {
+      "type": "Flex",
+      "name": "card-root",
+      "direction": "column",
+      "gap": "lg",
+      "children": ["intro", "row-1", "row-2", "row-3", "row-4"]
+    },
+
+    "intro": {
+      "type": "Text",
+      "format": { "fontWeight": "demibold" },
+      "children": "Popover smoke — click each trigger to anchor a popover. Children are auto-wrapped in <Tile compact> by the renderer for default padding."
+    },
+
+    "row-1": {
+      "type": "ButtonRow",
+      "children": [
+        {
+          "type": "Button",
+          "variant": "primary",
+          "children": "Default · top · small arrow",
+          "overlay": {
+            "type": "Popover",
+            "id": "popover-default",
+            "placement": "top",
+            "variant": "default",
+            "arrowSize": "small",
+            "children": [
+              {
+                "type": "Text",
+                "children": "Default popover. Anchors above the trigger with a small arrow."
+              }
+            ]
+          }
+        }
+      ]
+    },
+
+    "row-2": {
+      "type": "ButtonRow",
+      "children": [
+        {
+          "type": "Button",
+          "variant": "secondary",
+          "children": "Longform · right · close button",
+          "overlay": {
+            "type": "Popover",
+            "id": "popover-longform",
+            "placement": "right",
+            "variant": "longform",
+            "arrowSize": "medium",
+            "showCloseButton": true,
+            "children": [
+              {
+                "type": "Heading",
+                "size": "xs",
+                "children": "Longform popover"
+              },
+              {
+                "type": "Text",
+                "children": "Heavier padding and typography. Close button needs a PopoverHeader to display — flag if it does not appear."
+              },
+              {
+                "type": "ButtonRow",
+                "children": [
+                  {
+                    "type": "Button",
+                    "variant": "primary",
+                    "children": "Got it"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+
+    "row-3": {
+      "type": "Flex",
+      "direction": "row",
+      "gap": "md",
+      "align": "center",
+      "children": [
+        {
+          "type": "Link",
+          "children": "Shepherd · bottom · no arrow",
+          "overlay": {
+            "type": "Popover",
+            "id": "popover-shepherd",
+            "placement": "bottom",
+            "variant": "shepherd",
+            "arrowSize": "none",
+            "children": [
+              {
+                "type": "Text",
+                "children": "Shepherd variant — used for product tours."
+              }
+            ]
+          }
+        }
+      ]
+    },
+
+    "row-4": {
+      "type": "ButtonRow",
+      "children": [
+        {
+          "type": "Button",
+          "variant": "transparent",
+          "children": "Default · left · medium arrow",
+          "overlay": {
+            "type": "Popover",
+            "id": "popover-left",
+            "placement": "left",
+            "arrowSize": "medium",
+            "children": [
+              {
+                "type": "Text",
+                "children": "Left placement, medium arrow."
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "uid": "hs-uix-studio-pages",
+  "type": "pages",
+  "config": {
+    "entrypoint": "/app/pages/Pages.jsx"
+  }
+}
