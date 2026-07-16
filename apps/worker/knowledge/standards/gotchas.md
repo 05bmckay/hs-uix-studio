@@ -454,3 +454,31 @@ Dead-ends worth skipping:
 **The fix is content-level, not layout-level.** Equalize copy in `data` so every tile in the row has roughly matching text length (e.g. all descriptions wrap to two lines). Buttons land on the same baseline without any layout hack.
 
 If content genuinely can't be equalized, move the action into a shared footer row below the grid, or accept the misalignment — it's a platform constraint, not a spec bug.
+
+---
+
+## Holding a Custom-`Table` Column Width — Use a Fixed-`columnWidth` AutoGrid, Not a Spacer Image
+
+When you build a grid out of the raw `Table` primitives (e.g. a month-calendar grid of equal day columns), cells with little content **collapse narrower than their neighbors**. The instinct is to drop a fixed-size spacer into each cell — but the obvious spacers all fail:
+
+- **A full-width spacer `<Image>`** (a transparent SVG sized to the column) does *not* hold width. Images carry `max-width: 100%`, so when the table is narrower than the sum of its columns the table *scales the image down* and that column collapses — while sibling columns containing a `StatusTag`/`Tag` resist (the tag has a hard min-content width). Empty cells lose the fight and smush to nothing.
+- **Numeric `width={N}` on `TableCell`/`TableHeader`** is only a hint. The table's internal sizing compresses columns unequally to fit the container; it does not pin them.
+
+**The fix:** set the cell to `width="min"` (so the table *overflows and horizontal-scrolls*, DataTable-style, instead of compressing) and wrap the cell's content in a single-child **`<AutoGrid columnWidth={N} gap="flush">`**. AutoGrid's fixed column is a *real, non-scaling layout width* — it holds `N` even when the cell is empty, so every column stays equal.
+
+```jsx
+<TableCell width="min" align="left">
+  <AutoGrid columnWidth={160} gap="flush">
+    <Flex direction="column" gap="xs">
+      {/* day number, event chips, etc. — or nothing, the column still holds 160 */}
+    </Flex>
+  </AutoGrid>
+</TableCell>
+```
+
+Notes:
+- **Width only.** AutoGrid pins the horizontal axis. To hold *row height* for empty slots, use a **1px-wide × tall** spacer image (a 1px-wide image can never exceed its column, so unlike a full-width spacer it never scales away). Keep the two axes on separate mechanisms.
+- Removing the width-spacer image in favor of AutoGrid also deletes the stray spacer element, so the first real child (e.g. the day number) sits flush at the cell's top-left.
+- A single greedy column that should *fill* the table (e.g. a one-day view) wants `width="max"` and **no** AutoGrid — a fixed `columnWidth` would strand it.
+
+Related: this is the width-axis cousin of the SVG-`<Image>`-scaling trap — any time an `<Image>` is your sizing mechanism inside a constrained container, expect it to scale rather than hold.
