@@ -47,7 +47,14 @@ const SERVER_STALL_FAIL_MS = 90000;
 // proxy has dropped intermediate polls. We resync via since=0 anyway; this
 // is purely a UX hint.
 const RECONNECTING_THRESHOLD_MS = 2.5 * 60 * 1000;
-const MAX_FETCH_RETRIES = 3;
+const MAX_FETCH_RETRIES = 5;
+// hubspot.fetch goes through the host page's postMessage proxy, which can
+// drop a call without ever settling the promise. The poll loop is strictly
+// sequential, so an unsettled fetch would freeze it permanently — the UI
+// keeps showing "streaming" while nothing arrives and only a reload
+// recovers. Cap every poll so a dropped call becomes a retryable error.
+const POLL_FETCH_TIMEOUT_MS = 15000;
+const POLL_BODY_TIMEOUT_MS = 5000;
 
 function toError(error) {
   return error instanceof Error ? error : new Error(String(error));
@@ -116,6 +123,11 @@ function createStreamProgram({
         `${workerUrl}/streams/${streamId}?since=${sinceParam}${patchesParam}`,
         { method: "GET" },
       ),
+    ).pipe(
+      Effect.timeoutFail({
+        duration: Duration.millis(POLL_FETCH_TIMEOUT_MS),
+        onTimeout: () => new Error("stream poll fetch timed out"),
+      }),
     );
 
     if (isCancelled()) return { done: true, delayMs: null };
@@ -123,7 +135,12 @@ function createStreamProgram({
       return yield* Effect.fail(new Error(`stream poll ${res.status}`));
     }
 
-    const data = yield* Effect.tryPromise(() => res.json());
+    const data = yield* Effect.tryPromise(() => res.json()).pipe(
+      Effect.timeoutFail({
+        duration: Duration.millis(POLL_BODY_TIMEOUT_MS),
+        onTimeout: () => new Error("stream poll body timed out"),
+      }),
+    );
     if (isCancelled()) return { done: true, delayMs: null };
 
     retries = 0;

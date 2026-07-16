@@ -82,4 +82,4 @@ Hand-authored v0 — conventions documented in `specs/README.md`. Top-level shap
 
 ## Known issue
 
-Studio chat stream stalls around 10s — messages stop streaming to the UI but reload recovers them. It's a transport issue (DO polling / hubspot.fetch proxy), not generation. Don't chase it as a prompt or model bug.
+Studio chat stream stalls — messages stop streaming to the UI but reload recovers them. Diagnosis so far (July 2026): the server-side chain (worker → StudioRelay DO → StudioProjectAgent DO → Anthropic) was verified clean with a local curl poll harness — no gaps, turns complete. The remaining suspect was the client: `hubspot.fetch` runs through the host page's postMessage proxy and can drop a call without settling its promise, which froze `useStream.js`'s sequential poll loop forever. Poll fetches now carry a hard timeout so a dropped call retries instead of hanging. If stalls recur in HubSpot, look at the proxy leg first — not generation, not the worker.
