@@ -220,6 +220,18 @@ function createSpecParser(): PartialSpecParser {
 
 // Input shape: { "ops": [ {...}, {...}, ... ], "note"?: "..." }
 // Emit "op" events as each element of the ops array completes.
+//
+// Big-op decomposition: the creation / full-rewrite pattern puts EVERY
+// element into a single `{ "op": "add", "path": "/elements", "value": {...} }`
+// op, which under plain op-granularity streaming means zero preview until the
+// whole spec has streamed (10-30s). When we see an op whose `path` is
+// "/elements" open an object-valued `value`, we switch to per-entry tracking
+// (same approach as the emit_spec parser's elements handling): emit a
+// synthetic `add /elements {}` op to reset the map with the original op's
+// semantics, then one "element" event per completed entry. The final
+// completed big op is then suppressed — its content already streamed out —
+// unless any entry failed to parse, in which case the full op is emitted as
+// the correctness fallback (duplicate-but-idempotent for the client mirror).
 
 interface PatchOpsState {
   buf: string;
@@ -234,6 +246,13 @@ interface PatchOpsState {
   pendingKey: string | null;
   pendingKeyEnd: number;
   opIndex: number;
+  // Big-op decomposition state:
+  itemPath: string | null;   // the current op's `path` value, once its string closes
+  inElementsValue: boolean;  // inside the object value of an /elements op
+  entryKey: string | null;   // current element id being read inside that value
+  entryValueStart: number;   // buffer index of the entry's opening `{`
+  opDecomposed: boolean;     // this op streamed out as element events
+  decomposeFailed: boolean;  // an entry failed to parse — emit the full op after all
 }
 
 function createPatchOpsParser(): PartialSpecParser {
@@ -250,6 +269,12 @@ function createPatchOpsParser(): PartialSpecParser {
     pendingKey: null,
     pendingKeyEnd: -1,
     opIndex: 0,
+    itemPath: null,
+    inElementsValue: false,
+    entryKey: null,
+    entryValueStart: -1,
+    opDecomposed: false,
+    decomposeFailed: false,
   };
 
   function advance(events: ParserEvent[]): void {
@@ -265,6 +290,15 @@ function createPatchOpsParser(): PartialSpecParser {
           if (startIdx >= 0 && isKeyContext(state.buf, startIdx)) {
             state.pendingKey = state.buf.slice(startIdx + 1, state.pos);
             state.pendingKeyEnd = state.pos + 1;
+          } else if (
+            state.pendingKey === "path" &&
+            state.itemValueStart >= 0 &&
+            state.depth === state.opsDepth + 2
+          ) {
+            // The current op's `path` value just closed (depth check keeps
+            // this from matching "path" keys nested inside `value`).
+            state.itemPath = state.buf.slice(startIdx + 1, state.pos);
+            state.pendingKey = null;
           }
           state.stringOpenPos = -1;
         }
@@ -301,26 +335,105 @@ function createPatchOpsParser(): PartialSpecParser {
           state.itemValueStart < 0
         ) {
           state.itemValueStart = state.pos;
+          state.itemPath = null;
+          state.opDecomposed = false;
+          state.decomposeFailed = false;
+          continue;
+        }
+
+        // An /elements op's object value just opened — switch to per-entry
+        // decomposition. The synthetic reset op carries the original op's
+        // replace-the-whole-map semantics before individual adds stream in.
+        if (
+          state.opsOpenPos >= 0 &&
+          ch === "{" &&
+          !state.inElementsValue &&
+          state.pendingKey === "value" &&
+          state.itemPath === "/elements" &&
+          state.itemValueStart >= 0 &&
+          state.depth === state.opsDepth + 3
+        ) {
+          state.inElementsValue = true;
+          state.pendingKey = null;
+          events.push({
+            type: "op",
+            index: state.opIndex++,
+            op: { op: "add", path: "/elements", value: {} },
+          });
+          continue;
+        }
+
+        // Element entry inside the /elements value: `"id": {` one level in.
+        if (
+          state.inElementsValue &&
+          ch === "{" &&
+          state.depth === state.opsDepth + 4 &&
+          state.entryValueStart < 0 &&
+          state.pendingKey !== null
+        ) {
+          state.entryKey = state.pendingKey;
+          state.entryValueStart = state.pos;
+          state.pendingKey = null;
         }
         continue;
       }
 
       if (ch === "]" || ch === "}") {
         state.depth--;
+
+        // A complete element entry closed inside the /elements value.
+        if (
+          state.inElementsValue &&
+          ch === "}" &&
+          state.depth === state.opsDepth + 3 &&
+          state.entryValueStart >= 0 &&
+          state.entryKey !== null
+        ) {
+          const slice = state.buf.slice(state.entryValueStart, state.pos + 1);
+          try {
+            const node = JSON.parse(slice);
+            events.push({ type: "element", id: state.entryKey, node });
+          } catch {
+            state.decomposeFailed = true;
+          }
+          state.entryKey = null;
+          state.entryValueStart = -1;
+          continue;
+        }
+
+        // The /elements value object itself closed.
+        if (
+          state.inElementsValue &&
+          ch === "}" &&
+          state.depth === state.opsDepth + 2
+        ) {
+          state.inElementsValue = false;
+          state.opDecomposed = true;
+          continue;
+        }
+
         if (
           state.opsOpenPos >= 0 &&
           ch === "}" &&
           state.depth === state.opsDepth + 1 &&
           state.itemValueStart >= 0
         ) {
-          const slice = state.buf.slice(state.itemValueStart, state.pos + 1);
-          try {
-            const op = JSON.parse(slice);
-            events.push({ type: "op", index: state.opIndex++, op });
-          } catch {
-            // skip
+          // Decomposed ops already streamed out as element events — emitting
+          // the completed big op too would just resend every element in bulk.
+          // Emit it only as the fallback when an entry failed to parse.
+          if (!state.opDecomposed || state.decomposeFailed) {
+            const slice = state.buf.slice(state.itemValueStart, state.pos + 1);
+            try {
+              const op = JSON.parse(slice);
+              events.push({ type: "op", index: state.opIndex++, op });
+            } catch {
+              // skip
+            }
           }
           state.itemValueStart = -1;
+          state.itemPath = null;
+          state.opDecomposed = false;
+          state.decomposeFailed = false;
         }
         continue;
       }

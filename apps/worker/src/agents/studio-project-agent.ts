@@ -205,6 +205,7 @@ export class StudioProjectAgent extends Agent<Env, StudioProjectState> {
   private maybeStartPartialParser(idx: number, name: string): void {
     if (name === "patch_spec") {
       this.toolParsers.set(idx, { kind: "patch_spec", parser: createParser("patch_spec") });
+      this.toolEmittedIds.set(idx, new Set());
     }
   }
 
