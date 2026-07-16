@@ -89,13 +89,16 @@ fallthrough = true
 
 [vars]
 # Non-secret defaults; override per-env.
-# Prefixed model string routed by the AI Gateway unified endpoint.
-# Swap backends with a single string change:
+# Prefixed model string. anthropic/* runs through the gateway's native
+# Anthropic passthrough (prompt caching + streaming tool args); other
+# prefixes use the OpenAI-compat unified endpoint. Swap backends with a
+# single string change:
+#   anthropic/claude-opus-4-8
 #   anthropic/claude-sonnet-4-6
-#   anthropic/claude-opus-4-7
 #   workers-ai/@cf/moonshotai/kimi-k2.6
 #   openai/gpt-4o-mini
-CHAT_MODEL = "anthropic/claude-sonnet-4-6"
+# Note: switching models cold-starts the prompt cache (caches are per-model).
+CHAT_MODEL = "anthropic/claude-opus-4-8"
 STREAM_POLL_INTERVAL_MS = "400"
 
 # Raise CPU cap — long tool-heavy turns (multiple patch retries, reading

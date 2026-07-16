@@ -107,7 +107,8 @@ export function createAnthropicClient(env: Env, ctx: GatewayCallContext): Anthro
 // Pricing per 1M tokens (USD cents). Keys match the prefixed model string
 // passed to chat.completions.create. Update when pricing changes.
 const PRICING: Record<string, { inputCentsPerMTok: number; outputCentsPerMTok: number }> = {
-  "anthropic/claude-opus-4-7":   { inputCentsPerMTok: 1500, outputCentsPerMTok: 7500 },
+  "anthropic/claude-opus-4-8":   { inputCentsPerMTok:  500, outputCentsPerMTok: 2500 },
+  "anthropic/claude-opus-4-7":   { inputCentsPerMTok:  500, outputCentsPerMTok: 2500 },
   "anthropic/claude-sonnet-4-6": { inputCentsPerMTok:  300, outputCentsPerMTok: 1500 },
   "anthropic/claude-haiku-4-5":  { inputCentsPerMTok:  100, outputCentsPerMTok:  500 },
   "workers-ai/@cf/moonshotai/kimi-k2.6": { inputCentsPerMTok: 95, outputCentsPerMTok: 400 },
