@@ -18,32 +18,29 @@ The first three steps de-risk the central technical bet:
 
 If it can't, the rest of the product has no foundation. If it can, everything else is known-good engineering.
 
-### 1. Hand-author specs (current step)
+### 1. Hand-author specs — DONE
 
 Write JSON specs for sample cards of varied complexity. The format emerges from what these cards need to express — no schema design in the abstract.
 
-- [ ] `specs/construction-delays.json` — simple: stats, alert, chart, static list
-- [ ] `specs/fleet-maintenance.json` — medium: DescriptionList, Alert, DataTable, Panel form overlay
-- [ ] `specs/quickbooks-sync.json` — complex: tabs-in-tabs, two detail panels, toggle mutations, aggregated stats
+- [x] `specs/construction-delays.json` — simple: stats, alert, chart, static list
+- [x] `specs/deal-intelligence.json`, `specs/quickbooks-sync` (now in `apps/worker/knowledge/examples/`) — medium/complex coverage, plus 25+ knowledge-base examples
+- [x] Conventions documented in `specs/README.md`
+- [x] Format codified as JSON Schema in `schema/spec.schema.json` (generated from `apps/worker/src/catalog.ts` via `npm run schema:build`)
 
-Exit criterion: three specs authored, conventions documented in `specs/README.md`. When the format stabilizes, codify it in `schema/`.
+### 2. Minimal renderer — DONE
 
-### 2. Minimal renderer
+One React component that takes a spec and renders `@hubspot/ui-extensions` + `hs-uix` components. Lives in `apps/studio-app/src/app/pages/renderer/` (grew past "minimal": expressions, actions, watchers, `$bindState`, comment targets).
 
-One React component that takes a spec and renders `@hubspot/ui-extensions` + `hs-uix` components. Lives in a small test HubSpot card extension. Feed it the step-1 specs; iterate until visual fidelity is acceptable.
+### 3. One-shot LLM generation — DONE (proven)
 
-Exit criterion: all step-1 specs render acceptably in the actual HubSpot sandbox.
+Claude generates valid specs server-side via the knowledge-base tools + `patch_spec`, with `validate.ts`/`repair.ts` guarding output. The central bet held.
 
-### 3. One-shot LLM generation
+### 4. Build the product — IN PROGRESS
 
-Standalone Anthropic API script. Dump hs-uix + relevant `@hubspot/ui-extensions` `.d.ts` files into the system prompt. Generate specs for 5–10 varied natural-language prompts. Pipe each through the renderer.
-
-Exit criterion: Claude generates consistently valid, renderable specs. The central bet is proven.
-
-### 4. Build the product
-
-- Cloudflare backend: Workers + D1 (project metadata) + R2 (specs, artifacts) + AI Gateway (LLM calls)
-- HubSpot app page: chat left, canvas right, inline comments, state toggle
-- Project CRUD per-portal with owner
-- Spec → markdown and spec → tsx generation
-- Three export paths
+- [x] Cloudflare backend: Workers + D1 + AI Gateway (LLM calls); DO-backed streaming (StudioRelay + StudioProjectAgent)
+- [x] HubSpot app page: chat left, canvas right, inline comments, state tweaks
+- [x] Project CRUD per-portal with owner; OAuth install flow; beta credit gating
+- [x] Three export paths: JSON spec, markdown design doc, TSX starter
+- [ ] Streaming-transport hardening (poll-timeout fix shipped July 2026 — verify in HubSpot)
+- [ ] Cost: per-turn input tokens are heavy (~280k/turn observed) — prompt caching via native Anthropic API is the candidate fix
+- [ ] Progressive canvas preview: patch events currently arrive in bulk at round end for big creation patches

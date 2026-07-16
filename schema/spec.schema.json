@@ -1,0 +1,439 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/hs-uix/hs-uix-studio/main/schema/spec.schema.json",
+  "title": "hs-uix Studio card spec (v1)",
+  "description": "Structural schema for Studio card specs — the { meta, state, data, root, elements } adjacency-list format rendered by apps/studio-app's renderer. GENERATED from apps/worker/src/catalog.ts by scripts/build-schema.mjs; do not edit by hand. Authoring conventions ($-references, {{path}} templates, expression objects, derivation policy) are documented in specs/README.md. Deep semantic checks (reachability from root, action params on event props, Icon.name validity) live in apps/worker/src/tools/validate.ts.",
+  "type": "object",
+  "required": [
+    "root",
+    "elements"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "type": "object",
+      "description": "Card metadata. Not rendered.",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "surface": {
+          "type": "string",
+          "description": "Target surface, e.g. crm.record.tab"
+        },
+        "object": {
+          "type": "string",
+          "description": "Associated CRM object type"
+        }
+      },
+      "additionalProperties": true
+    },
+    "state": {
+      "type": "object",
+      "description": "Mutable preview state, readable as $state.<key>. Top-level keys only for $bindState and watch."
+    },
+    "data": {
+      "type": "object",
+      "description": "Static/mock data, readable as $data.<key>. Derived display values (formatting, variant selection, computed booleans) are pre-computed here per the derivation policy."
+    },
+    "watch": {
+      "type": "object",
+      "description": "Map of state key → action(s) fired when that key's value changes (not on initial render).",
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/action"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/action"
+            }
+          }
+        ]
+      }
+    },
+    "root": {
+      "type": "string",
+      "description": "Element ID of the root node; must exist as a key in elements."
+    },
+    "elements": {
+      "type": "object",
+      "description": "Adjacency-list map of unique kebab-case element ID → node. Children reference siblings by ID string.",
+      "additionalProperties": {
+        "$ref": "#/$defs/node"
+      }
+    }
+  },
+  "$defs": {
+    "node": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/componentNode"
+        },
+        {
+          "$ref": "#/$defs/forEachNode"
+        },
+        {
+          "$ref": "#/$defs/renderNode"
+        }
+      ]
+    },
+    "componentNode": {
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "Accordion",
+            "Alert",
+            "AutoGrid",
+            "AutoStatusTag",
+            "AutoTag",
+            "AvatarStack",
+            "BarChart",
+            "Box",
+            "Button",
+            "ButtonRow",
+            "Calendar",
+            "Card",
+            "Checkbox",
+            "CrmDataTable",
+            "CrmKanban",
+            "CrmLookupSelect",
+            "CurrencyInput",
+            "DataTable",
+            "DateInput",
+            "DescriptionList",
+            "DescriptionListItem",
+            "Divider",
+            "Dropdown",
+            "EmptyState",
+            "ErrorState",
+            "Feed",
+            "Flex",
+            "Form",
+            "FormBuilder",
+            "Heading",
+            "Icon",
+            "Illustration",
+            "Image",
+            "Inline",
+            "Input",
+            "Kanban",
+            "KanbanCardActions",
+            "KeyValueList",
+            "LineChart",
+            "Link",
+            "List",
+            "LoadingButton",
+            "LoadingSpinner",
+            "Modal",
+            "ModalBody",
+            "ModalFooter",
+            "MultiSelect",
+            "NumberInput",
+            "Panel",
+            "PanelBody",
+            "PanelFooter",
+            "PanelSection",
+            "ProgressBar",
+            "RadioButton",
+            "ScoreCircle",
+            "SearchInput",
+            "SectionHeader",
+            "Select",
+            "Spacer",
+            "Spinner",
+            "Stack",
+            "Statistics",
+            "StatisticsItem",
+            "StatisticsTrend",
+            "StatusTag",
+            "StepIndicator",
+            "StepperInput",
+            "StyledText",
+            "Tab",
+            "Table",
+            "TableBody",
+            "TableCell",
+            "TableFooter",
+            "TableHead",
+            "TableHeader",
+            "TableRow",
+            "Tabs",
+            "Tag",
+            "Text",
+            "TextArea",
+            "Textarea",
+            "Tile",
+            "TimeInput",
+            "Toggle",
+            "ToggleGroup",
+            "Tooltip"
+          ],
+          "description": "Component name from the catalog (apps/worker/src/catalog.ts)."
+        },
+        "name": {
+          "type": "string",
+          "description": "Optional human label for structural containers; used by comment-mode outlines, not rendered."
+        },
+        "visible": {
+          "description": "Optional; node is skipped when this resolves falsy."
+        },
+        "children": {
+          "$ref": "#/$defs/children"
+        }
+      },
+      "additionalProperties": true
+    },
+    "children": {
+      "description": "Element ID string, text/template string, single node, or an array mixing all three plus $forEach iteration markers. String entries that match an elements key are IDs; otherwise they render as text.",
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
+          }
+        },
+        {
+          "$ref": "#/$defs/node"
+        }
+      ]
+    },
+    "forEachNode": {
+      "type": "object",
+      "description": "Iteration marker inside a children array — renders `render` once per item of the referenced list, exposing it as $<as>.",
+      "required": [
+        "$forEach",
+        "render"
+      ],
+      "properties": {
+        "$forEach": {
+          "type": "string",
+          "pattern": "^\\$",
+          "description": "Path reference to the list, e.g. $data.items."
+        },
+        "as": {
+          "type": "string",
+          "description": "Iteration variable name (defaults to item)."
+        },
+        "render": {
+          "$ref": "#/$defs/node"
+        }
+      },
+      "additionalProperties": false
+    },
+    "renderNode": {
+      "type": "object",
+      "description": "Lazy render-callback marker for node-valued props (e.g. DataTable renderCell). $render names the callback argument(s) exposed to the node as $-references.",
+      "required": [
+        "$render",
+        "node"
+      ],
+      "properties": {
+        "$render": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "node": {
+          "$ref": "#/$defs/node"
+        }
+      },
+      "additionalProperties": false
+    },
+    "action": {
+      "description": "Action descriptor for event-handler props (onClick, onChange, …) and watch entries. Param values may be literals, $-references, or expression objects.",
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "$action": {
+              "const": "setState"
+            },
+            "key": {
+              "type": "string"
+            },
+            "value": {}
+          },
+          "required": [
+            "$action",
+            "key",
+            "value"
+          ],
+          "additionalProperties": false,
+          "description": "Renderer-native. Set a state key on the preview state object."
+        },
+        {
+          "type": "object",
+          "properties": {
+            "$action": {
+              "const": "batch"
+            },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {}
+              }
+            }
+          },
+          "required": [
+            "$action",
+            "actions"
+          ],
+          "additionalProperties": false,
+          "description": "Renderer-native. Fire multiple actions from one gesture."
+        },
+        {
+          "type": "object",
+          "properties": {
+            "$action": {
+              "const": "addAlert"
+            },
+            "title": {},
+            "message": {},
+            "type": {
+              "type": "string",
+              "enum": [
+                "info",
+                "tip",
+                "success",
+                "warning",
+                "danger"
+              ]
+            }
+          },
+          "required": [
+            "$action",
+            "message"
+          ],
+          "additionalProperties": false,
+          "description": "SDK actions.addAlert({title, message, type})."
+        },
+        {
+          "type": "object",
+          "properties": {
+            "$action": {
+              "const": "copyTextToClipboard"
+            },
+            "value": {}
+          },
+          "required": [
+            "$action",
+            "value"
+          ],
+          "additionalProperties": false,
+          "description": "SDK actions.copyTextToClipboard(value)."
+        },
+        {
+          "type": "object",
+          "properties": {
+            "$action": {
+              "const": "copyToClipboard"
+            },
+            "value": {}
+          },
+          "required": [
+            "$action",
+            "value"
+          ],
+          "additionalProperties": false,
+          "description": "Alias for copyTextToClipboard."
+        },
+        {
+          "type": "object",
+          "properties": {
+            "$action": {
+              "const": "reloadPage"
+            },
+            "confirmReload": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false,
+          "description": "SDK actions.reloadPage(). No-op in preview unless confirmReload: true.",
+          "required": [
+            "$action"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "$action": {
+              "const": "closeOverlay"
+            },
+            "id": {}
+          },
+          "required": [
+            "$action",
+            "id"
+          ],
+          "additionalProperties": false,
+          "description": "SDK actions.closeOverlay(id)."
+        },
+        {
+          "type": "object",
+          "properties": {
+            "$action": {
+              "const": "openIframeModal"
+            },
+            "uri": {},
+            "height": {},
+            "width": {},
+            "title": {},
+            "flush": {}
+          },
+          "required": [
+            "$action",
+            "uri",
+            "height",
+            "width"
+          ],
+          "additionalProperties": false,
+          "description": "SDK actions.openIframeModal({uri, height, width, title?, flush?})."
+        },
+        {
+          "type": "object",
+          "properties": {
+            "$action": {
+              "const": "refreshObjectProperties"
+            }
+          },
+          "additionalProperties": false,
+          "description": "SDK (CRM-only) actions.refreshObjectProperties().",
+          "required": [
+            "$action"
+          ]
+        }
+      ]
+    }
+  }
+}
