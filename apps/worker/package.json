@@ -10,7 +10,7 @@
     "predeploy": "npm run knowledge:build && npm run schema:build",
     "pretypecheck": "npm run knowledge:build",
     "dev": "wrangler dev",
-    "deploy": "WRANGLER_SEND_METRICS=false wrangler deploy --no-x-autoconfig",
+    "deploy": "WRANGLER_SEND_METRICS=false wrangler deploy --autoconfig false",
     "migrate:local": "wrangler d1 execute studio --local --file=./schema.sql",
     "migrate:remote": "wrangler d1 execute studio --remote --file=./schema.sql",
     "d1:projects": "wrangler d1 execute studio --remote --command \"SELECT id, name, datetime(updated_at/1000,'unixepoch') AS updated FROM projects ORDER BY updated_at DESC\"",
