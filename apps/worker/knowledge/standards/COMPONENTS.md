@@ -62,6 +62,10 @@
 |---|---|---|---|
 | **FormBuilder** (`hs-uix/form`) | forms.md | **Default for any form.** Config-driven fields, validation, wizards, repeaters, conditional visibility | Single-field inline edit (use raw Input) |
 | **CrmLookupSelect** (`hs-uix/common-components`) | crm-data.md | CRM-backed Select/MultiSelect with debounced live search (objectType + properties) | Static option list (use Select/MultiSelect) |
+| **CrmRecordPicker** (`hs-uix`) | crm-data.md | Record picker with descriptions, multi + max, inline create | Plain select bound to one state key (use CrmLookupSelect) |
+| **DateRangePicker** (`hs-uix`) | forms.md | Date filtering: presets, rolling ranges, from/to, operator select | Single fixed date entry (use DateInput) |
+| **FilterBuilder** (`hs-uix`) | forms.md | Nested AND/OR advanced-filter tree over property list | One-property filters (use Select / DateRangePicker) |
+| `FileUpload` (experimental) | files.md | Upload attachments to the portal file manager, optional attach-to-record | Static imagery (use Image) |
 | `Form` | forms.md | **Escape hatch** — one or two inputs hand-wired | Anything with 3+ fields or validation (use FormBuilder) |
 | `Input` | forms.md | Short text (name, email, single line) | Long text (use TextArea), dates (use DateInput) |
 | `TextArea` | forms.md | Multi-line text (notes, comments) | Short values |
@@ -124,6 +128,7 @@
 | `Icon` | media.md | Inline visual indicators, action icons (140+ available) | Inside `<Text>` (use Flex row instead) |
 | `Illustration` | media.md | Empty states, onboarding, decorative graphics (29+ available) | Data-dense areas |
 | **AvatarStack** (`hs-uix/common-components`) | media.md | Overlapping avatars (letters / image URLs / mixed) with `+N` overflow chip | Single user with name (use `Flex + Image + Text` inline) |
+| `FileViewer` (experimental) | files.md | List files uploaded by this app (attachment cards or compact links) | Arbitrary portal files (only sees this app's uploads) |
 
 ## CRM Components (import from `@hubspot/ui-extensions/crm`)
 

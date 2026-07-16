@@ -37,6 +37,9 @@ const HSUIX_NAMES = [
   // are ahead of the build), and they're controlled components that can't be
   // driven by a declarative spec anyway, so they're intentionally omitted.
   "Feed", "Calendar", "CrmLookupSelect", "CrmDataTable", "CrmKanban", "Spinner",
+  // hs-uix 2.3 additions. All three support uncontrolled `defaultValue` mode,
+  // so specs can drive them without wiring value/onChange by hand.
+  "CrmRecordPicker", "DateRangePicker", "FilterBuilder",
 ];
 
 const rawComponents = {};
@@ -63,6 +66,17 @@ if (HSExperimental?.ExpandableText) {
 }
 if (HSExperimental?.Popover) {
   rawComponents["Popover"] = HSExperimental.Popover;
+}
+// File attachment pair: FileUpload uploads to the portal's file manager (and
+// optionally attaches to a CRM record); FileViewer lists files uploaded by
+// this app, auto-refreshing when a sibling FileUpload completes. FileInput is
+// deliberately NOT mapped — its .d.ts marks it `@ignore do not use in
+// production` and it's a low-level controlled input a spec can't drive.
+if (HSExperimental?.FileUpload) {
+  rawComponents["FileUpload"] = HSExperimental.FileUpload;
+}
+if (HSExperimental?.FileViewer) {
+  rawComponents["FileViewer"] = HSExperimental.FileViewer;
 }
 
 // ---- Icon safety net ------------------------------------------------------

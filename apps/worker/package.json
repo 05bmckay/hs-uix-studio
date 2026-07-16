@@ -20,7 +20,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.112.1",
     "@hs-uix/stream-relay": "^0.2.0",
-    "agents": "^0.12.3",
+    "agents": "^0.17.4",
     "effect": "^3.21.2",
     "hono": "^4.6.0",
     "openai": "^4.77.0",

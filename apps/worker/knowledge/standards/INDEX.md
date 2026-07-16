@@ -15,8 +15,10 @@
 | **Add a stage-based board / pipeline** | `kanban.md` (use `hs-uix/kanban`) |
 | **Add an activity feed / timeline / audit log** | `feed.md` (use `hs-uix/feed`) |
 | **Add a calendar / scheduling / month view** | `calendar.md` (use `hs-uix/calendar`) |
-| **Bind a table/board/lookup to live CRM data** | `crm-data.md` (`CrmDataTable` / `CrmKanban` / `CrmLookupSelect`) |
+| **Bind a table/board/lookup to live CRM data** | `crm-data.md` (`CrmDataTable` / `CrmKanban` / `CrmLookupSelect` / `CrmRecordPicker`) |
 | **Add a form or edit flow** | `forms.md` (use `hs-uix/form` for anything beyond 1-2 fields) + `overlays.md` |
+| **Add a date filter or advanced filter builder** | `forms.md` (`DateRangePicker`, `FilterBuilder`) |
+| **Upload / list file attachments** | `files.md` (`FileUpload` + `FileViewer`) |
 | **Show metrics / KPIs** | `data-display.md` |
 | **Build a chart** | `data-display.md` (Chart Guidelines section) |
 | **Handle loading / empty / error states** | `states.md` |
@@ -83,7 +85,8 @@ Pick the archetype that matches the user's workflow before writing code:
 | `calendar.md` | Calendar / scheduling views | **`hs-uix` Calendar (month/week/day/agenda)** |
 | `card-building-process.md` | Build workflow, archetypes, checklist | — |
 | `crm-components.md` | Native CRM components | CrmPropertyList, CrmStageTracker, CrmActionLink |
-| `crm-data.md` | CRM-backed table/board/lookup | **`hs-uix` CrmDataTable, CrmKanban, CrmLookupSelect** |
+| `crm-data.md` | CRM-backed table/board/lookup | **`hs-uix` CrmDataTable, CrmKanban, CrmLookupSelect, CrmRecordPicker** |
+| `files.md` | File attachments | FileUpload, FileViewer (experimental) |
 | `feed.md` | Activity feed / timeline | **`hs-uix` Feed** |
 | `data-and-state.md` | Hooks, data fetching | useCrmProperties, useAssociations |
 | `data-display.md` | Metrics, charts, progress | Statistics, ProgressBar, BarChart, DescriptionList, KeyValueList |

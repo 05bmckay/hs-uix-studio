@@ -1,6 +1,6 @@
 ---
 id: forms
-scope: [form, input, textarea, select, multi-select, number-input, stepper-input, currency-input, date-input, checkbox, toggle, toggle-group, radio-button, validation, inline-editing]
+scope: [form, input, textarea, select, multi-select, number-input, stepper-input, currency-input, date-input, checkbox, toggle, toggle-group, radio-button, validation, inline-editing, date-range-picker, filter-builder, date-filter, advanced-filters]
 depends-on: [overlays]
 critical-rules: 7
 archetypes: [list-manager, multi-view-card]
@@ -552,6 +552,73 @@ Renders a single radio button. For 2+ radio options in a form, prefer `ToggleGro
 | `readonly` | `boolean` | No | `false` | Prevents selection. |
 | `value` | `string \| number` | No | -- | Value submitted with form. Not displayed. |
 | `variant` | `'sm'` \| `'small'` \| `'default'` | No | `'default'` | Size. |
+
+---
+
+## DateRangePicker (`hs-uix`)
+
+Complete date-filter control for toolbars and report headers: preset dropdown ("Last 30 days", …), rolling ranges ("more than N weeks ago"), explicit from/to dates, and optional operator + CRM-field dropdowns. Use it instead of composing two `DateInput`s whenever the user is *filtering by date*.
+
+```jsx
+import { DateRangePicker } from "hs-uix";
+
+<DateRangePicker
+  label="Close date"
+  name="close-date"
+  defaultValue={{ operator: "InRollingDateRange", preset: "LAST_30_DAYS" }}
+  presets
+  clearable
+  onChange={(value, meta) => setFilter(value)}
+/>
+```
+
+| Prop | Description |
+|---|---|
+| `value` / `defaultValue` | The filter value object. In specs prefer **`defaultValue`** (uncontrolled) or `$bindState` on `value`. |
+| `presets` | `true` = built-in HubSpot preset list, `false` = none, or a custom `[{label, value}]` array. |
+| `operator` / `showOperatorSelect` | Expose "is between / is after / is known…" operator dropdown. |
+| `showFieldSelect` / `fieldOptions` | Optional controlling-CRM-property dropdown above the operator. |
+| `direction` | `"row"` (filter bars) or `"column"` (panel forms). |
+| `clearable`, `min`, `max`, `format`, `readOnly` | The usual field affordances. |
+
+Value shapes (discriminated by `operator`): `{operator:"InRollingDateRange", preset}`, `{operator:"InRange", from, to}`, `{operator:"Equal"|"BeforeDateStaticOrDynamic"|"AfterDateStaticOrDynamic", date}`, `{operator:"GreaterRolling"|"LessRolling", amount, unit, direction}`, `{operator:"Known"|"NotKnown"}`. Date objects are HubSpot `DateInput` values — **`month` is 0-indexed** (0 = January).
+
+Rules:
+1. Specs should set `defaultValue` and react via `onChange` actions — don't hand-wire both `value` and `onChange` unless the range must live in `$state`.
+2. Precompute preset lists into `data` when custom; the built-in `presets: true` covers most cards.
+
+---
+
+## FilterBuilder (`hs-uix`)
+
+Nested AND/OR condition-group builder — the "advanced filters" UI. Renders property / operator / value rows with add-condition and add-group controls, up to `maxDepth` levels.
+
+```jsx
+import { FilterBuilder } from "hs-uix";
+
+<FilterBuilder
+  properties={[
+    { name: "dealstage", label: "Deal stage", type: "enumeration", options: [...] },
+    { name: "amount", label: "Amount", type: "number" },
+    { name: "closedate", label: "Close date", type: "date" },
+  ]}
+  defaultValue={{ type: "group", operator: "AND", children: [] }}
+  onChange={(tree) => setFilters(tree)}
+/>
+```
+
+| Prop | Description |
+|---|---|
+| `properties` | Array of filterable properties: `{name, label, type, options?}`. Types drive the operator list (`FILTER_OPERATORS`). |
+| `value` / `defaultValue` | The condition tree. In specs prefer **`defaultValue`** (uncontrolled). |
+| `maxDepth` | Max group nesting; root counts as 1 (default 2). |
+| `labels` / `operatorLabels` | Copy overrides. |
+| `readOnly` | Render the tree without edit controls. |
+
+Rules:
+1. Put the `properties` array in `data` — it's static per card.
+2. FilterBuilder edits the tree; **applying** the filter to a list is the card's job (e.g. an "Apply" Button firing a `setState` action, with the list pre-filtered in `data` for prototype purposes).
+3. For a single date filter, use `DateRangePicker`; FilterBuilder is for multi-property query building.
 
 ---
 

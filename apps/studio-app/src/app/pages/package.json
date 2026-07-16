@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
-    "@hubspot/ui-extensions": "^0.14.2",
-    "effect": "^3.21.2",
-    "hs-uix": "^2.1.0"
+    "@hubspot/ui-extensions": "^0.15.0",
+    "effect": "^3.22.0",
+    "hs-uix": "^2.3.1"
   }
 }

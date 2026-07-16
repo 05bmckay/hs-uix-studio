@@ -150,6 +150,15 @@ export const COMPONENTS: ComponentEntry[] = [
   { name: "CrmDataTable",     category: "table",        source: "hs-uix", description: "DataTable that batch-fetches + client-paginates CRM records for an objectType." },
   { name: "CrmKanban",        category: "data-display", source: "hs-uix", description: "Kanban that batch-fetches CRM records for an objectType." },
   { name: "Spinner",          category: "state",        source: "hs-uix", description: "Animated braille/unicode loading indicator (inline, sized)." },
+
+  // ---- hs-uix 2.3 -----------------------------------------------------------
+  { name: "CrmRecordPicker",  category: "form",         source: "hs-uix", description: "Search-and-pick CRM records (single or multi) with inline record creation. Richer than CrmLookupSelect: descriptions, max, allowCreate." },
+  { name: "DateRangePicker",  category: "form",         source: "hs-uix", description: "Date filter control: presets, rolling ranges, explicit from/to, operator select. Use defaultValue for uncontrolled specs." },
+  { name: "FilterBuilder",    category: "form",         source: "hs-uix", description: "Nested AND/OR condition-group builder over a `properties` array. Use defaultValue for uncontrolled specs." },
+
+  // ---- Files (experimental @hubspot/ui-extensions) ---------------------------
+  { name: "FileUpload",       category: "form",         source: "hubspot", description: "Upload files to the portal file manager; optional attachToRecord {objectTypeId, objectId}. fileLimit caps count." },
+  { name: "FileViewer",       category: "data-display", source: "hubspot", description: "List files uploaded by this app (source: app|appUser; displayMode: attachment|list). Auto-refreshes after a sibling FileUpload." },
   // NOTE: CollectionToolbar / CollectionFilterControl / CollectionSortSelect /
   // CollectionCount / ActiveFilterChips are intentionally NOT listed. They ship
   // only from the "hs-uix/common-components" subpath (not the root barrel the

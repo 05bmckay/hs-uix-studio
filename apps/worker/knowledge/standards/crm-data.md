@@ -5,7 +5,7 @@ depends-on: [tables, kanban, forms, data-and-state]
 archetypes: [list-manager, pipeline-board]
 ---
 
-# CRM-Backed Data — `CrmDataTable` / `CrmKanban` / `CrmLookupSelect`
+# CRM-Backed Data — `CrmDataTable` / `CrmKanban` / `CrmLookupSelect` / `CrmRecordPicker`
 
 > **Reach for these when the card's data IS CRM records** (deals, contacts, companies, tickets, custom objects) and you'd otherwise hand-wire `useCrmSearch`. Point them at an `objectType` + `properties` and they fetch, paginate, and render — no manual data-source code. They wrap the same DataTable / Kanban / Select you already know.
 
@@ -104,6 +104,40 @@ import { CrmLookupSelect } from "hs-uix/common-components";
 | `placeholder`, `description`, `required`, `readOnly`, `error` | Standard field props forwarded to the native select. |
 
 Inside a `FormBuilder`, back a field with CRM search via `makeCrmSearchSelectField` / `makeCrmSearchMultiSelectField` from `hs-uix/utils` (see `forms.md`).
+
+---
+
+## CrmRecordPicker
+
+A richer record picker than `CrmLookupSelect`: search-as-you-type with label + description per option, single or `multi` selection (with `max`), and optional **inline record creation** (`allowCreate`) when the search comes up empty. Returns both ids and full records to `onChange`.
+
+```jsx
+import { CrmRecordPicker } from "hs-uix";
+
+<CrmRecordPicker
+  objectType="company"
+  properties={["name", "domain"]}
+  labelField="name"
+  descriptionField="domain"
+  label="Associated companies"
+  multi
+  max={5}
+  defaultValue={[]}
+  onChange={(ids, records) => setCompanyIds(ids)}
+/>
+```
+
+| Prop | Description |
+|---|---|
+| `objectType` / `properties` | CRM object + properties to fetch for each option. |
+| `labelField` / `descriptionField` | Property name (or accessor) for the option's label / secondary line. |
+| `value` / `defaultValue` | Selected id(s). In specs prefer **`defaultValue`** or `$bindState` on `value`. Multi mode uses arrays. |
+| `multi` / `max` | Multi-select with an optional cap. |
+| `allowCreate` | `{...config}` enables "Create <term>" when no match; `false` disables. |
+| `variant` | `"input"` (default field look) or `"transparent"`. |
+| `debounce` / `minSearchLength` / `pageLength` | Search tuning. |
+
+**Picking between the two pickers:** `CrmLookupSelect` when a plain select bound to a state key is enough; `CrmRecordPicker` when you need descriptions, a selection cap, create-inline, or the full records (not just ids) in the change handler.
 
 ---
 

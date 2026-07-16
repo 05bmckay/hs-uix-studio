@@ -43,6 +43,8 @@ debugRoutes.get("/kimi-tools", async (c) => {
         },
       },
     ],
-  } as unknown as Parameters<typeof c.env.AI.run>[1]);
+    // Deliberate shape probe with non-standard fields; `never` satisfies
+    // every overload of the (now stricter) AI.run typings.
+  } as never);
   return c.json({ ms: Date.now() - started, model: MODEL, response: r });
 });
