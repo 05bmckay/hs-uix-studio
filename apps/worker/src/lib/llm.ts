@@ -1,18 +1,20 @@
-// OpenAI client wired through Cloudflare's AI Gateway Unified endpoint. One
-// OpenAI-shaped interface; the backend is chosen by the `model` string's
-// prefix (e.g. "anthropic/claude-sonnet-4-6", "workers-ai/@cf/moonshotai/kimi-k2.6").
+// LLM clients wired through Cloudflare's AI Gateway. Two paths:
 //
-// Docs: https://developers.cloudflare.com/ai-gateway/usage/chat-completion/
+//   - anthropic/* models: native Anthropic Messages API via the gateway's
+//     provider passthrough (`.../anthropic`). Request bodies pass through
+//     verbatim, which is what makes `cache_control` prompt-caching markers
+//     work (~0.1× input cost on cache reads) AND lets tool-call argument
+//     deltas stream (the compat translation buffers them until the block
+//     completes, killing progressive spec preview).
+//   - everything else (workers-ai/*, openai/*): OpenAI-shaped client against
+//     the unified/compat endpoint, chosen by the model string's prefix.
+//     Those platforms do automatic prompt caching without markers.
 //
-// Why unified instead of native Anthropic:
-//   - Swapping models is a string change, not a tool-loop rewrite.
-//   - Tradeoff: we lose Anthropic's explicit prompt-caching markers
-//     (cache_control blocks). OpenAI-compat passes only a subset of
-//     provider-specific fields, and Anthropic caching requires the markers.
-//     OpenAI and Workers AI (Kimi) do automatic prompt caching at the
-//     platform level, so those backends still cache without help.
+// Docs: https://developers.cloudflare.com/ai-gateway/usage/providers/anthropic/
+//       https://developers.cloudflare.com/ai-gateway/usage/chat-completion/
 
 import OpenAI from "openai";
+import Anthropic from "@anthropic-ai/sdk";
 import type { Env } from "../index";
 
 export interface GatewayCallContext {
@@ -68,6 +70,40 @@ export function createLLMClient(
   });
 }
 
+export function isAnthropicModel(model: string): boolean {
+  return model.startsWith("anthropic/");
+}
+
+// Native Anthropic client through the AI Gateway provider passthrough.
+// The SDK appends /v1/messages and sets x-api-key + anthropic-version itself;
+// model strings on this path are BARE Anthropic IDs (strip the "anthropic/"
+// prefix before calling).
+export function createAnthropicClient(env: Env, ctx: GatewayCallContext): Anthropic {
+  return new Anthropic({
+    apiKey: env.ANTHROPIC_API_KEY,
+    baseURL: `https://gateway.ai.cloudflare.com/v1/${env.CLOUDFLARE_ACCOUNT_ID}/${env.CLOUDFLARE_AI_GATEWAY_ID}/anthropic`,
+    defaultHeaders: {
+      // Without this beta, the API buffers a tool call's input JSON and
+      // emits it in one burst when the block completes — which kills the
+      // progressive element-by-element canvas preview. Fine-grained
+      // streaming delivers input_json_delta as the model generates it.
+      "anthropic-beta": "fine-grained-tool-streaming-2025-05-14",
+      "cf-aig-authorization": `Bearer ${env.CLOUDFLARE_AI_GATEWAY_TOKEN}`,
+      "cf-aig-max-attempts": "3",
+      "cf-aig-retry-delay": "500",
+      // Chat requests must never be served from the gateway's exact-match
+      // response cache — a replayed turn looks like fresh generation but
+      // arrives in one burst and can be stale.
+      "cf-aig-skip-cache": "true",
+      "cf-aig-metadata": JSON.stringify({
+        hub_id: String(ctx.hubId),
+        chat_id: ctx.chatId,
+        message_id: ctx.messageId,
+      }),
+    },
+  });
+}
+
 // Pricing per 1M tokens (USD cents). Keys match the prefixed model string
 // passed to chat.completions.create. Update when pricing changes.
 const PRICING: Record<string, { inputCentsPerMTok: number; outputCentsPerMTok: number }> = {
@@ -106,5 +142,31 @@ export function estimateCostMicroCents(
   const microCents =
     (inputTokens / 1_000_000) * p.inputCentsPerMTok * 1000 +
     (outputTokens / 1_000_000) * p.outputCentsPerMTok * 1000;
+  return Math.round(microCents);
+}
+
+// Cache-aware usage breakdown for the native Anthropic path.
+// inputTokens here is the UNCACHED remainder only (Anthropic's
+// usage.input_tokens); cache reads bill at 0.1×, 5-minute-TTL cache
+// writes at 1.25× base input.
+export interface UsageBreakdown {
+  inputTokens: number;
+  outputTokens: number;
+  cacheReadTokens?: number;
+  cacheWriteTokens?: number;
+}
+
+export function estimateCostMicroCentsDetailed(
+  model: string,
+  u: UsageBreakdown,
+): number {
+  const p = PRICING[model];
+  if (!p) return 0;
+  const inRate = p.inputCentsPerMTok * 1000;
+  const microCents =
+    (u.inputTokens / 1_000_000) * inRate +
+    ((u.cacheReadTokens ?? 0) / 1_000_000) * inRate * 0.1 +
+    ((u.cacheWriteTokens ?? 0) / 1_000_000) * inRate * 1.25 +
+    (u.outputTokens / 1_000_000) * p.outputCentsPerMTok * 1000;
   return Math.round(microCents);
 }

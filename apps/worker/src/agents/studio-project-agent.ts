@@ -30,9 +30,15 @@ import { Agent } from "agents";
 import type { FiberContext, FiberRecoveryContext } from "agents";
 import type { Env } from "../index";
 import type OpenAI from "openai";
-import { createLLMClient, estimateCostCents, estimateCostMicroCents } from "../lib/llm";
+import type Anthropic from "@anthropic-ai/sdk";
+import {
+  createLLMClient,
+  createAnthropicClient,
+  isAnthropicModel,
+  estimateCostMicroCentsDetailed,
+} from "../lib/llm";
 import { logUsage } from "../lib/db";
-import { TOOL_DEFINITIONS, dispatchTool } from "../tools";
+import { TOOL_DEFINITIONS, ANTHROPIC_TOOL_DEFINITIONS, dispatchTool } from "../tools";
 import { validateSpec } from "../tools/validate";
 import { repairSpec } from "../tools/repair";
 import { applyPatch, type PatchOp } from "../lib/patch";
@@ -159,7 +165,12 @@ export class StudioProjectAgent extends Agent<Env, StudioProjectState> {
   private status: Status = "streaming";
   private content = "";
   private error: string | null = null;
+  // inputTokens is the TOTAL prompt size (uncached + cache reads + cache
+  // writes) so the client-facing usage payload stays comparable across
+  // providers. The split fields feed the cache-aware cost estimate.
   private totals = { inputTokens: 0, outputTokens: 0 };
+  private uncachedInputTokens = 0;
+  private cacheTotals = { readTokens: 0, writeTokens: 0 };
   private meta: StartRequest | null = null;
   private emittedSpec: unknown = null;
   private emittedSpecNote: string | null = null;
@@ -407,6 +418,8 @@ export class StudioProjectAgent extends Agent<Env, StudioProjectState> {
       this.content = "";
       this.error = null;
       this.totals = { inputTokens: 0, outputTokens: 0 };
+      this.uncachedInputTokens = 0;
+      this.cacheTotals = { readTokens: 0, writeTokens: 0 };
       this.emittedSpec = null;
       this.emittedSpecNote = null;
       this.emittedSpecVersion = 0;
@@ -539,6 +552,26 @@ export class StudioProjectAgent extends Agent<Env, StudioProjectState> {
     // dies and the DO is evicted, recovery still has enough to update D1.
     this.stashSnapshot();
     try {
+      if (isAnthropicModel(req.model)) {
+        await this.runAnthropicLoop(req, logCtx, runStartedAt);
+      } else {
+        await this.runOpenAILoop(req, logCtx, runStartedAt);
+      }
+      await this.finishRun(req, logCtx, runStartedAt);
+    } catch (err) {
+      await this.failRun(req, runStartedAt, err);
+    }
+  }
+
+  // OpenAI-compat tool loop — workers-ai/* and openai/* models via the
+  // gateway unified endpoint. anthropic/* models use runAnthropicLoop, which
+  // is the same loop against the native Messages API (prompt caching +
+  // streaming tool-arg deltas).
+  private async runOpenAILoop(
+    req: StartRequest,
+    logCtx: Record<string, unknown>,
+    runStartedAt: number,
+  ): Promise<void> {
       const client = createLLMClient(this.env, req.model, {
         hubId: req.hubId,
         chatId: req.chatId,
@@ -644,6 +677,7 @@ export class StudioProjectAgent extends Agent<Env, StudioProjectState> {
             // Final chunk with only usage info.
             if (chunk.usage) {
               this.totals.inputTokens += chunk.usage.prompt_tokens ?? 0;
+              this.uncachedInputTokens += chunk.usage.prompt_tokens ?? 0;
               this.totals.outputTokens += chunk.usage.completion_tokens ?? 0;
             }
             continue;
@@ -735,6 +769,7 @@ export class StudioProjectAgent extends Agent<Env, StudioProjectState> {
           if (choice.finish_reason) finishReason = choice.finish_reason;
           if (chunk.usage) {
             this.totals.inputTokens += chunk.usage.prompt_tokens ?? 0;
+            this.uncachedInputTokens += chunk.usage.prompt_tokens ?? 0;
             this.totals.outputTokens += chunk.usage.completion_tokens ?? 0;
           }
         }
@@ -856,7 +891,254 @@ export class StudioProjectAgent extends Agent<Env, StudioProjectState> {
             TOOL_CAP_NOTICE;
         }
       }
+  }
 
+  // Native Anthropic Messages tool loop via the AI Gateway provider
+  // passthrough. Two things the OpenAI-compat path can't do:
+  //
+  //   1. Prompt caching. cache_control breakpoints on (a) the last tool def,
+  //      (b) the static system prompt, (c) the per-project spec block, and
+  //      (d) the last content block of the newest message. Rounds 2..N read
+  //      the whole prior prefix at 0.1× input cost instead of re-billing
+  //      ~200-300k tokens at full price every round. Keep the prefix
+  //      byte-stable: tools in fixed order, no timestamps in system text,
+  //      append-only message history.
+  //   2. Streaming tool-argument deltas. The compat translation buffers
+  //      input_json_delta until the block completes; natively they stream,
+  //      so the partial-spec parser emits per-element patches while the
+  //      model is still writing — the canvas builds progressively.
+  private async runAnthropicLoop(
+    req: StartRequest,
+    logCtx: Record<string, unknown>,
+    runStartedAt: number,
+  ): Promise<void> {
+    const client = createAnthropicClient(this.env, {
+      hubId: req.hubId,
+      chatId: req.chatId,
+      messageId: req.messageId,
+    });
+    const bareModel = req.model.slice("anthropic/".length);
+
+    const system: Anthropic.Messages.TextBlockParam[] = [
+      {
+        type: "text",
+        text: req.systemStatic,
+        cache_control: { type: "ephemeral" },
+      },
+      ...(req.systemSpec
+        ? [
+            {
+              type: "text" as const,
+              text: req.systemSpec,
+              cache_control: { type: "ephemeral" as const },
+            },
+          ]
+        : []),
+    ];
+
+    const tools: Anthropic.Messages.Tool[] = ANTHROPIC_TOOL_DEFINITIONS.map(
+      (t, i) => ({
+        name: t.name,
+        description: t.description,
+        input_schema: t.input_schema as Anthropic.Messages.Tool.InputSchema,
+        ...(i === ANTHROPIC_TOOL_DEFINITIONS.length - 1
+          ? { cache_control: { type: "ephemeral" as const } }
+          : {}),
+      }),
+    );
+
+    const running: Anthropic.Messages.MessageParam[] = req.messages.map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
+
+    for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+      this.currentRound = round;
+      this.phase = "Thinking";
+
+      const messages = withMovingCacheBreakpoint(running);
+      const payloadBytes = JSON.stringify(messages).length;
+      console.log("[studio-project-agent] round_request", {
+        round,
+        messageId: req.messageId,
+        messageCount: messages.length,
+        payloadBytes,
+      });
+      this.logEvent(req, "round_request", {
+        round,
+        messageCount: messages.length,
+        payloadBytes,
+      });
+
+      const stream = await client.messages.create({
+        model: bareModel,
+        max_tokens: 32768,
+        system,
+        tools,
+        messages,
+        stream: true,
+      });
+
+      let assistantText = "";
+      let stopReason: string | null = null;
+      let hadTextInThisRound = false;
+      const toolBlocks = new Map<number, { id: string; name: string; argsBuf: string }>();
+      const roundUsage = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
+
+      for await (const event of stream) {
+        this.lastEventAt = Date.now();
+        if (event.type === "message_start") {
+          const u = event.message.usage;
+          roundUsage.input += u.input_tokens ?? 0;
+          roundUsage.cacheRead += u.cache_read_input_tokens ?? 0;
+          roundUsage.cacheWrite += u.cache_creation_input_tokens ?? 0;
+          roundUsage.output = u.output_tokens ?? 0;
+        } else if (event.type === "content_block_start") {
+          const block = event.content_block;
+          if (block.type === "tool_use") {
+            toolBlocks.set(event.index, { id: block.id, name: block.name, argsBuf: "" });
+            this.phase = phaseLabelFor(block.name, {});
+            this.maybePersist(true);
+            this.maybeStartPartialParser(event.index, block.name);
+          }
+        } else if (event.type === "content_block_delta") {
+          const delta = event.delta;
+          if (delta.type === "text_delta" && delta.text) {
+            if (
+              !hadTextInThisRound &&
+              this.content.length > 0 &&
+              !this.content.endsWith("\n\n")
+            ) {
+              this.content += this.content.endsWith("\n") ? "\n" : "\n\n";
+            }
+            this.content += delta.text;
+            assistantText += delta.text;
+            hadTextInThisRound = true;
+            this.maybePersist();
+          } else if (delta.type === "input_json_delta" && delta.partial_json) {
+            const tb = toolBlocks.get(event.index);
+            if (tb) tb.argsBuf += delta.partial_json;
+            this.feedPartialParser(event.index, delta.partial_json);
+          }
+        } else if (event.type === "message_delta") {
+          if (event.delta.stop_reason) stopReason = event.delta.stop_reason;
+          if (event.usage?.output_tokens != null) {
+            roundUsage.output = event.usage.output_tokens;
+          }
+        }
+      }
+
+      this.totals.inputTokens +=
+        roundUsage.input + roundUsage.cacheRead + roundUsage.cacheWrite;
+      this.totals.outputTokens += roundUsage.output;
+      this.uncachedInputTokens += roundUsage.input;
+      this.cacheTotals.readTokens += roundUsage.cacheRead;
+      this.cacheTotals.writeTokens += roundUsage.cacheWrite;
+
+      const orderedToolBlocks = [...toolBlocks.entries()]
+        .sort((a, b) => a[0] - b[0])
+        .map(([, v]) => v);
+      this.toolParsers.clear();
+      this.toolEmittedIds.clear();
+
+      console.log("[studio-project-agent] round_end", {
+        ...logCtx,
+        round,
+        stopReason,
+        toolCalls: orderedToolBlocks.length,
+        contentLength: this.content.length,
+        cacheRead: roundUsage.cacheRead,
+        cacheWrite: roundUsage.cacheWrite,
+        uncachedInput: roundUsage.input,
+        elapsedMs: Date.now() - runStartedAt,
+      });
+      this.logEvent(req, "round_end", {
+        round,
+        finish_reason: stopReason,
+        tool_calls: orderedToolBlocks.length,
+        cache_read: roundUsage.cacheRead,
+        cache_write: roundUsage.cacheWrite,
+        uncached_input: roundUsage.input,
+        out: roundUsage.output,
+      });
+      this.stashSnapshot();
+
+      if (stopReason !== "tool_use") {
+        if (stopReason === "max_tokens") {
+          const notice =
+            "\n\n_Hit the output-token cap before finishing. Ask me to continue or try patch_spec for incremental edits._";
+          this.content = (this.content.trimEnd() + notice).trim();
+          this.maybePersist(true);
+        }
+        break;
+      }
+
+      // Execute tool calls; echo the assistant turn (text + tool_use blocks)
+      // and one tool_result per call back into the running history.
+      const assistantContent: Anthropic.Messages.ContentBlockParam[] = [];
+      if (assistantText.length > 0) {
+        assistantContent.push({ type: "text", text: assistantText });
+      }
+      const toolResults: Anthropic.Messages.ToolResultBlockParam[] = [];
+      let truncatedToolArgs = false;
+      for (const tb of orderedToolBlocks) {
+        let input: Record<string, unknown> = {};
+        try {
+          input = JSON.parse(tb.argsBuf || "{}") as Record<string, unknown>;
+        } catch (err) {
+          const argsLen = tb.argsBuf.length;
+          console.error("[studio-project-agent] malformed tool arguments", {
+            tool: tb.name,
+            tool_use_id: tb.id,
+            argsLen,
+            err: err instanceof Error ? err.message : String(err),
+          });
+          this.logEvent(req, "tool_args_malformed", {
+            tool: tb.name,
+            tool_use_id: tb.id,
+            argsLen,
+            err: err instanceof Error ? err.message : String(err),
+          });
+          const notice = `\n\n_The model's ${tb.name} call was cut off mid-JSON (${argsLen} chars). Likely hit the output-token cap — ask me to continue or try patch_spec for incremental edits._`;
+          this.content = (this.content.trimEnd() + notice).trim();
+          this.maybePersist(true);
+          truncatedToolArgs = true;
+          break;
+        }
+        assistantContent.push({ type: "tool_use", id: tb.id, name: tb.name, input });
+        this.phase = phaseLabelFor(tb.name, input);
+        this.phaseHistory.push(this.phase);
+        this.maybePersist(true);
+        await this.logToolCall(req, tb.name, input);
+        const resultContent = await this.executeTool(tb.name, input, req);
+        toolResults.push({ type: "tool_result", tool_use_id: tb.id, content: resultContent });
+      }
+
+      // Truncated tool-call JSON — don't round-trip the broken assistant
+      // turn. Notice already appended; exit cleanly as a `done` turn.
+      if (truncatedToolArgs) break;
+
+      running.push({ role: "assistant", content: assistantContent });
+      running.push({ role: "user", content: toolResults });
+
+      // ask_questions ends the turn.
+      if (this.emittedQuestions) break;
+
+      if (round === MAX_TOOL_ROUNDS - 1) {
+        this.content =
+          (this.content.length > 0 ? this.content + "\n\n" : "") +
+          TOOL_CAP_NOTICE;
+      }
+    }
+  }
+
+  // Shared terminal success path for both provider loops: flip status, flush
+  // the final content to D1, log run totals and usage.
+  private async finishRun(
+    req: StartRequest,
+    logCtx: Record<string, unknown>,
+    runStartedAt: number,
+  ): Promise<void> {
       this.phase = "Done";
       this.status = "done";
 
@@ -888,6 +1170,15 @@ export class StudioProjectAgent extends Agent<Env, StudioProjectState> {
         out: this.totals.outputTokens,
       });
 
+      // Cache-aware cost: cache reads bill at 0.1×, writes at 1.25× base
+      // input. For the OpenAI-compat path the cache fields are zero and this
+      // reduces to the flat input × rate estimate.
+      const estimatedCostMicroCents = estimateCostMicroCentsDetailed(req.model, {
+        inputTokens: this.uncachedInputTokens,
+        outputTokens: this.totals.outputTokens,
+        cacheReadTokens: this.cacheTotals.readTokens,
+        cacheWriteTokens: this.cacheTotals.writeTokens,
+      });
       await logUsage(this.env, {
         id: crypto.randomUUID(),
         hubId: req.hubId,
@@ -897,18 +1188,24 @@ export class StudioProjectAgent extends Agent<Env, StudioProjectState> {
         model: req.model,
         inputTokens: this.totals.inputTokens,
         outputTokens: this.totals.outputTokens,
-        estimatedCostCents: estimateCostCents(
-          req.model,
-          this.totals.inputTokens,
-          this.totals.outputTokens,
-        ),
-        estimatedCostMicroCents: estimateCostMicroCents(
-          req.model,
-          this.totals.inputTokens,
-          this.totals.outputTokens,
-        ),
+        estimatedCostCents: Math.round(estimatedCostMicroCents / 1000),
+        estimatedCostMicroCents,
       });
-    } catch (err) {
+  }
+
+  // Shared terminal error path: surface the error in the message content,
+  // flip the D1 row so the UI exits its streaming state.
+  private async failRun(
+    req: StartRequest,
+    runStartedAt: number,
+    err: unknown,
+  ): Promise<void> {
+      const logCtx = {
+        messageId: req.messageId,
+        chatId: req.chatId,
+        projectId: req.projectId,
+        model: req.model,
+      };
       const elapsedMs = Date.now() - runStartedAt;
       // Detailed error inspection — the SDK wraps provider errors with a
       // status and (sometimes) a response body. Extract both so the D1 log
@@ -954,7 +1251,6 @@ export class StudioProjectAgent extends Agent<Env, StudioProjectState> {
           .run()
           .catch(() => {});
       }
-    }
   }
 
   // Dispatches one tool call and returns a JSON string suitable for the
@@ -1214,4 +1510,34 @@ export class StudioProjectAgent extends Agent<Env, StudioProjectState> {
 // of which have special meaning in JSON Pointer paths.
 function escapeJsonPointer(s: string): string {
   return s.replace(/~/g, "~0").replace(/\//g, "~1");
+}
+
+// Anthropic incremental-caching pattern: a cache_control breakpoint on the
+// last content block of the newest message. It moves forward every round, so
+// each request reads the previous round's cache and writes only the new
+// suffix. Applied to a CLONE of the last message — mutating `running` would
+// leave stale breakpoints on older messages and blow the 4-breakpoint limit.
+function withMovingCacheBreakpoint(
+  messages: Anthropic.Messages.MessageParam[],
+): Anthropic.Messages.MessageParam[] {
+  if (messages.length === 0) return messages;
+  const out = messages.slice();
+  const last = out[out.length - 1];
+  const cacheControl = { cache_control: { type: "ephemeral" as const } };
+  if (typeof last.content === "string") {
+    if (last.content.length > 0) {
+      out[out.length - 1] = {
+        ...last,
+        content: [{ type: "text", text: last.content, ...cacheControl }],
+      };
+    }
+  } else if (Array.isArray(last.content) && last.content.length > 0) {
+    const blocks = last.content.slice();
+    blocks[blocks.length - 1] = {
+      ...(blocks[blocks.length - 1] as object),
+      ...cacheControl,
+    } as (typeof blocks)[number];
+    out[out.length - 1] = { ...last, content: blocks };
+  }
+  return out;
 }

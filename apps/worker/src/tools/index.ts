@@ -195,6 +195,17 @@ export const TOOL_DEFINITIONS = [
   },
 ] as const;
 
+// Same manifest in Anthropic Messages API shape (name/description/
+// input_schema) for the native gateway path. Derived so the two never drift.
+// Order is stable and the LAST definition carries the prompt-cache breakpoint
+// (set by the caller), so append new tools at the end of TOOL_DEFINITIONS —
+// reordering invalidates the tools+system cache prefix.
+export const ANTHROPIC_TOOL_DEFINITIONS = TOOL_DEFINITIONS.map((t) => ({
+  name: t.function.name,
+  description: t.function.description,
+  input_schema: t.function.parameters as Record<string, unknown>,
+}));
+
 export interface ToolResult {
   ok: boolean;
   value: unknown;
