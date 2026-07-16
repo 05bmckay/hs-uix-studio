@@ -37,8 +37,14 @@ class_name = "StudioProjectAgent"
 [ai]
 binding = "AI"
 
-# v1 previously created the legacy ChatStream class. Chat streaming now runs
-# inside StudioProjectAgent and is exposed through StudioRelay.
+# v1 created the legacy ChatStream class (deleted again in v5). Chat streaming
+# now runs inside StudioProjectAgent and is exposed through StudioRelay. The v1
+# block must stay in the file: fresh local dev state replays the whole chain,
+# and v5's deleted_classes fails if ChatStream was never created.
+
+[[migrations]]
+tag = "v1"
+new_classes = ["ChatStream"]
 
 [[migrations]]
 tag = "v2"
