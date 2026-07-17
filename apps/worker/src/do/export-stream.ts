@@ -233,7 +233,8 @@ export class ExportStream {
       ],
       max_completion_tokens: maxTokens,
       stream: true,
-      temperature: 0.3,
+      // No sampling params: Opus 4.7+ removed temperature/top_p/top_k and
+      // 400s on them ("`temperature` is deprecated for this model").
       ...(includeUsage ? { stream_options: { include_usage: true } } : {}),
     });
 
