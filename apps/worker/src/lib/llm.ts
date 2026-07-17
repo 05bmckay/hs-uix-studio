@@ -48,10 +48,15 @@ export function createLLMClient(
   env: Env,
   model: string,
   ctx: GatewayCallContext,
+  // BYO Anthropic key — only applied to anthropic/* models.
+  apiKeyOverride?: string,
 ): OpenAI {
   const baseURL = `https://gateway.ai.cloudflare.com/v1/${env.CLOUDFLARE_ACCOUNT_ID}/${env.CLOUDFLARE_AI_GATEWAY_ID}/compat`;
   return new OpenAI({
-    apiKey: apiKeyForModel(env, model),
+    apiKey:
+      apiKeyOverride && isAnthropicModel(model)
+        ? apiKeyOverride
+        : apiKeyForModel(env, model),
     baseURL,
     defaultHeaders: {
       // Gateway auth — required when "Authenticated Gateway" is on.
@@ -78,9 +83,15 @@ export function isAnthropicModel(model: string): boolean {
 // The SDK appends /v1/messages and sets x-api-key + anthropic-version itself;
 // model strings on this path are BARE Anthropic IDs (strip the "anthropic/"
 // prefix before calling).
-export function createAnthropicClient(env: Env, ctx: GatewayCallContext): Anthropic {
+export function createAnthropicClient(
+  env: Env,
+  ctx: GatewayCallContext,
+  // Bring-your-own key: when the portal stored its own Anthropic key, calls
+  // bill to it instead of the house key. Same gateway, same logging.
+  apiKeyOverride?: string,
+): Anthropic {
   return new Anthropic({
-    apiKey: env.ANTHROPIC_API_KEY,
+    apiKey: apiKeyOverride ?? env.ANTHROPIC_API_KEY,
     baseURL: `https://gateway.ai.cloudflare.com/v1/${env.CLOUDFLARE_ACCOUNT_ID}/${env.CLOUDFLARE_AI_GATEWAY_ID}/anthropic`,
     defaultHeaders: {
       // Without this beta, the API buffers a tool call's input JSON and
@@ -157,11 +168,29 @@ export interface UsageBreakdown {
   cacheWriteTokens?: number;
 }
 
+// Exact PRICING key, else family prefix — BYO model picks return dated ids
+// (e.g. anthropic/claude-sonnet-4-5-20250929) that should still estimate at
+// their family's rate rather than silently costing 0.
+function resolvePricing(
+  model: string,
+): { inputCentsPerMTok: number; outputCentsPerMTok: number } | undefined {
+  if (PRICING[model]) return PRICING[model];
+  if (!model.startsWith("anthropic/")) return undefined;
+  const bare = model.slice("anthropic/".length);
+  if (bare.startsWith("claude-fable") || bare.startsWith("claude-mythos")) {
+    return { inputCentsPerMTok: 1000, outputCentsPerMTok: 5000 };
+  }
+  if (bare.startsWith("claude-opus"))   return { inputCentsPerMTok: 500, outputCentsPerMTok: 2500 };
+  if (bare.startsWith("claude-sonnet")) return { inputCentsPerMTok: 300, outputCentsPerMTok: 1500 };
+  if (bare.startsWith("claude-haiku"))  return { inputCentsPerMTok: 100, outputCentsPerMTok:  500 };
+  return undefined;
+}
+
 export function estimateCostMicroCentsDetailed(
   model: string,
   u: UsageBreakdown,
 ): number {
-  const p = PRICING[model];
+  const p = resolvePricing(model);
   if (!p) return 0;
   const inRate = p.inputCentsPerMTok * 1000;
   const microCents =

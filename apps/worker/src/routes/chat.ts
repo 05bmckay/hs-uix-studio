@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import type { Env } from "../index";
 import { requireInstall } from "../lib/verify";
+import { getPortalChatConfig } from "../lib/byok";
 import { STUDIO_SYSTEM_PROMPT } from "../prompts";
 import { logUsage, getHubSpendMicroCents } from "../lib/db";
 import { estimateCostCents, estimateCostMicroCents } from "../lib/llm";
@@ -53,19 +54,23 @@ chatRoutes.post("/", async (c) => {
   // install's credit budget so we don't keep burning through Anthropic
   // tokens the user hasn't paid for. Spend is computed from usage_events;
   // a turn that's mid-stream when the cap trips is allowed to finish (we
-  // only check at the start of the next turn).
-  const spend = await getHubSpendMicroCents(c.env, caller.hubId);
-  if (spend >= caller.install.creditMicroCents) {
-    return c.json(
-      {
-        error: "credit_exhausted",
-        message:
-          "Your Studio beta credit has been spent. Reach out to me@cartermckay.com to top up.",
-        creditMicroCents: caller.install.creditMicroCents,
-        spendMicroCents: spend,
-      },
-      402,
-    );
+  // only check at the start of the next turn). Portals that brought their
+  // own Anthropic key bypass the gate entirely — the spend is theirs.
+  const portalConfig = await getPortalChatConfig(c.env, caller.hubId);
+  if (!portalConfig.apiKey) {
+    const spend = await getHubSpendMicroCents(c.env, caller.hubId);
+    if (spend >= caller.install.creditMicroCents) {
+      return c.json(
+        {
+          error: "credit_exhausted",
+          message:
+            "Your Studio beta credit has been spent. Add your own Anthropic API key in Settings to keep going, or reach out to me@cartermckay.com to top up.",
+          creditMicroCents: caller.install.creditMicroCents,
+          spendMicroCents: spend,
+        },
+        402,
+      );
+    }
   }
 
   const now = Date.now();
@@ -187,7 +192,7 @@ chatRoutes.post("/", async (c) => {
           projectId: body.projectId,
           chatId: body.chatId,
           messageId: assistantMessageId,
-          model: c.env.CHAT_MODEL,
+          model: portalConfig.chatModel ?? c.env.CHAT_MODEL,
           systemStatic: STUDIO_SYSTEM_PROMPT,
           systemSpec,
           messages,

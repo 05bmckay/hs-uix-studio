@@ -18,7 +18,14 @@ CREATE TABLE IF NOT EXISTS installs (
   -- $30 = 3_000_000 µ¢; beyond that the install is rejected at the OAuth
   -- callback so this defaults to 0. Server enforces by comparing
   -- SUM(usage_events.estimated_cost_micro_cents) for the hub against this.
-  credit_micro_cents  INTEGER NOT NULL DEFAULT 0
+  credit_micro_cents  INTEGER NOT NULL DEFAULT 0,
+  -- Bring-your-own Anthropic key (AES-GCM with TOKEN_ENCRYPTION_KEY, own IV).
+  -- When set, LLM calls for this hub use this key and the credit gate is
+  -- bypassed. chat_model optionally pins a model the key can access
+  -- (prefixed, e.g. "anthropic/claude-opus-4-8"); NULL = server default.
+  anthropic_key_enc   BLOB,
+  anthropic_key_iv    BLOB,
+  chat_model          TEXT
 );
 
 CREATE TABLE IF NOT EXISTS projects (

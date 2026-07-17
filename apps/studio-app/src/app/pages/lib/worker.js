@@ -165,6 +165,15 @@ export const workerApi = {
   getUsageSummary: (auth, { window = "30d" } = {}) =>
     call(`/usage/summary?window=${encodeURIComponent(window)}`, { auth }),
 
+  // --- Bring-your-own Anthropic key ---------------------------------------
+  getAnthropicSettings: (auth) => call("/settings/anthropic", { auth }),
+  setAnthropicKey: (auth, key) =>
+    call("/settings/anthropic", { method: "POST", auth, body: { key } }),
+  clearAnthropicKey: (auth) =>
+    call("/settings/anthropic", { method: "DELETE", auth }),
+  setChatModel: (auth, model) =>
+    call("/settings/anthropic/model", { method: "PUT", auth, body: { model } }),
+
   // --- Knowledge catalog (prebuilt blocks + examples) --------------------
   getKnowledgeCatalog: (auth) => call("/knowledge/catalog", { auth }),
   getKnowledgeExample: (auth, name) =>

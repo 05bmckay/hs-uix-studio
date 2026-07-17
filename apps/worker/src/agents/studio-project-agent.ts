@@ -38,6 +38,7 @@ import {
   estimateCostMicroCentsDetailed,
 } from "../lib/llm";
 import { logUsage } from "../lib/db";
+import { getPortalChatConfig } from "../lib/byok";
 import { TOOL_DEFINITIONS, ANTHROPIC_TOOL_DEFINITIONS, dispatchTool } from "../tools";
 import { validateSpec } from "../tools/validate";
 import { repairSpec } from "../tools/repair";
@@ -912,11 +913,18 @@ export class StudioProjectAgent extends Agent<Env, StudioProjectState> {
     logCtx: Record<string, unknown>,
     runStartedAt: number,
   ): Promise<void> {
-    const client = createAnthropicClient(this.env, {
-      hubId: req.hubId,
-      chatId: req.chatId,
-      messageId: req.messageId,
-    });
+    // BYO key: read fresh from D1 here rather than passing it through the
+    // relay payload, so the key never lands in Durable Object storage.
+    const { apiKey: portalKey } = await getPortalChatConfig(this.env, req.hubId);
+    const client = createAnthropicClient(
+      this.env,
+      {
+        hubId: req.hubId,
+        chatId: req.chatId,
+        messageId: req.messageId,
+      },
+      portalKey ?? undefined,
+    );
     const bareModel = req.model.slice("anthropic/".length);
 
     const system: Anthropic.Messages.TextBlockParam[] = [

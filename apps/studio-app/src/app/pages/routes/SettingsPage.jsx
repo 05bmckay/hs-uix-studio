@@ -8,6 +8,7 @@ import {
   EmptyState,
   Flex,
   Icon,
+  Input,
   Link,
   LineChart,
   LoadingSpinner,
@@ -16,6 +17,7 @@ import {
   PanelFooter,
   PanelSection,
   ProgressBar,
+  Select,
   Statistics,
   StatisticsItem,
   StatusTag,
@@ -250,7 +252,7 @@ export const SettingsPage = () => {
       {header}
       <Tabs defaultSelected="overview">
         <Tab tabId="overview" title="Overview">
-          <OverviewTab portal={portal} overview={overview} />
+          <OverviewTab portal={portal} overview={overview} auth={auth} />
         </Tab>
         <Tab tabId="usage" title="Usage">
           <UsageTab usage={usage} actions={actions} />
@@ -263,9 +265,159 @@ export const SettingsPage = () => {
   );
 };
 
+// ---------- Bring-your-own Anthropic key -----------------------------------
+//
+// Lets a portal store its own Anthropic API key (encrypted at rest on the
+// worker) and pick which model chats run on, from the models that key can
+// actually access. With a key connected, the beta credit gate is bypassed.
+const AnthropicKeySection = ({ auth }) => {
+  const [loading, setLoading] = useState(true);
+  const [hasKey, setHasKey] = useState(false);
+  const [models, setModels] = useState([]);
+  const [chatModel, setChatModel] = useState(null);
+  const [keyError, setKeyError] = useState(null);
+  const [draftKey, setDraftKey] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+
+  const refresh = () => {
+    setLoading(true);
+    workerApi
+      .getAnthropicSettings(auth)
+      .then((data) => {
+        setHasKey(Boolean(data?.hasKey));
+        setModels(data?.models ?? []);
+        setChatModel(data?.chatModel ?? null);
+        setKeyError(data?.keyError ?? null);
+      })
+      .catch((err) => setError(err?.message || "Couldn't load key settings."))
+      .finally(() => setLoading(false));
+  };
+  useEffect(refresh, [auth]);
+
+  const saveKey = () => {
+    setBusy(true);
+    setError(null);
+    workerApi
+      .setAnthropicKey(auth, draftKey.trim())
+      .then((data) => {
+        setHasKey(true);
+        setModels(data?.models ?? []);
+        setDraftKey("");
+        setKeyError(null);
+      })
+      .catch((err) => setError(err?.message || "Anthropic rejected that key."))
+      .finally(() => setBusy(false));
+  };
+
+  const removeKey = () => {
+    setBusy(true);
+    setError(null);
+    workerApi
+      .clearAnthropicKey(auth)
+      .then(() => {
+        setHasKey(false);
+        setModels([]);
+        setChatModel(null);
+      })
+      .catch((err) => setError(err?.message || "Couldn't remove the key."))
+      .finally(() => setBusy(false));
+  };
+
+  const pickModel = (value) => {
+    const next = value || null;
+    setBusy(true);
+    setError(null);
+    workerApi
+      .setChatModel(auth, next)
+      .then((data) => setChatModel(data?.chatModel ?? null))
+      .catch((err) => setError(err?.message || "Couldn't set the model."))
+      .finally(() => setBusy(false));
+  };
+
+  const modelOptions = [
+    { label: "Studio default (Claude Opus 4.8)", value: "" },
+    ...models.map((m) => ({ label: m.displayName, value: `anthropic/${m.id}` })),
+  ];
+
+  return (
+    <Tile>
+      <Flex direction="column" gap="sm">
+        <Flex direction="row" justify="between" align="center">
+          <Text format={{ fontWeight: "demibold" }}>Bring your own Anthropic key</Text>
+          {hasKey && (
+            <StatusTag variant={keyError ? "warning" : "success"}>
+              {keyError ? "Key needs attention" : "Key connected"}
+            </StatusTag>
+          )}
+        </Flex>
+        {loading ? (
+          <LoadingSpinner size="sm" layout="centered" label="Loading key settings…" />
+        ) : hasKey ? (
+          <Flex direction="column" gap="sm">
+            <Text variant="microcopy">
+              Chats and design docs bill to your key, and the beta credit no
+              longer applies. The key is stored encrypted and never shown again.
+            </Text>
+            {keyError && (
+              <Alert title="Key check failed" variant="warning">
+                {`${keyError}. Model choices may be stale — replace the key if this persists.`}
+              </Alert>
+            )}
+            <Select
+              label="Chat model"
+              name="byok-chat-model"
+              description="Models your key can access. Applies to new chats and design docs."
+              options={modelOptions}
+              value={chatModel ?? ""}
+              onChange={pickModel}
+              readOnly={busy}
+            />
+            <Flex direction="row" gap="sm">
+              <Button variant="destructive" onClick={removeKey} disabled={busy}>
+                Remove key
+              </Button>
+            </Flex>
+          </Flex>
+        ) : (
+          <Flex direction="column" gap="sm">
+            <Text variant="microcopy">
+              Add your own Anthropic API key to run Studio on your account —
+              useful when the beta credit runs out. Stored encrypted on the
+              server; never displayed after saving.
+            </Text>
+            <Input
+              label="Anthropic API key"
+              name="byok-key"
+              placeholder="sk-ant-…"
+              value={draftKey}
+              onChange={setDraftKey}
+              readOnly={busy}
+            />
+            <Flex direction="row" gap="sm">
+              <Button
+                variant="primary"
+                onClick={saveKey}
+                disabled={busy || !draftKey.trim().startsWith("sk-ant-")}
+              >
+                {busy ? "Verifying…" : "Connect key"}
+              </Button>
+            </Flex>
+          </Flex>
+        )}
+        {error && (
+          <Alert title="Something went wrong" variant="danger">
+            {error}
+          </Alert>
+        )}
+      </Flex>
+    </Tile>
+  );
+};
+
 // ---------- Overview tab ---------------------------------------------------
 
-const OverviewTab = ({ portal, overview }) => {
+const OverviewTab = ({ portal, overview, auth }) => {
   const tokens30d = overview.tokens30d;
   const credit = portal.creditMicroCents ?? 0;
   const spend = portal.spendMicroCents ?? 0;
@@ -312,12 +464,15 @@ const OverviewTab = ({ portal, overview }) => {
           />
           {remaining === 0 && (
             <Text variant="microcopy">
-              Credit exhausted — new chats are blocked. Reach out to
-              me@cartermckay.com to top up.
+              Credit exhausted — new chats are blocked. Add your own Anthropic
+              key below to keep going, or reach out to me@cartermckay.com to
+              top up.
             </Text>
           )}
         </Flex>
       )}
+
+      <AnthropicKeySection auth={auth} />
 
       <Tile>
         <Flex direction="column" gap="sm">

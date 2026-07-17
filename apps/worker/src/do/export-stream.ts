@@ -13,6 +13,7 @@
 
 import type { Env } from "../index";
 import { createLLMClient, estimateCostCents, estimateCostMicroCents } from "../lib/llm";
+import { getPortalChatConfig } from "../lib/byok";
 import { logUsage } from "../lib/db";
 
 // Same budgets as the original sync export route. Kept here so export-stream
@@ -145,11 +146,19 @@ export class ExportStream {
   }
 
   private async runCompletionInner(req: StartRequest): Promise<void> {
-    const client = createLLMClient(this.env, req.model, {
-      hubId: req.hubId,
-      chatId: `export:${req.projectId}`,
-      messageId: `export:design-doc:${Date.now()}`,
-    });
+    // BYO key: same read-fresh-from-D1 pattern as the chat agent — the key
+    // never enters this DO's storage or the start payload.
+    const { apiKey: portalKey } = await getPortalChatConfig(this.env, req.hubId);
+    const client = createLLMClient(
+      this.env,
+      req.model,
+      {
+        hubId: req.hubId,
+        chatId: `export:${req.projectId}`,
+        messageId: `export:design-doc:${Date.now()}`,
+      },
+      portalKey ?? undefined,
+    );
 
     try {
       await this.streamInto(

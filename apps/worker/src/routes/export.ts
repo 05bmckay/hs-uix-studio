@@ -15,6 +15,7 @@
 import { Hono } from "hono";
 import type { Env } from "../index";
 import { requireInstall } from "../lib/verify";
+import { getPortalChatConfig } from "../lib/byok";
 import { DESIGN_DOC_PROMPT } from "../prompts";
 
 export const exportRoutes = new Hono<{ Bindings: Env }>();
@@ -184,6 +185,7 @@ exportRoutes.post("/:projectId/design-doc", async (c) => {
   // The UI polls /streams/:id the same way it polls chat streams; the DO
   // writes the final markdown to design_docs on completion.
   const streamId = `export:${projectId}:${Date.now()}`;
+  const portalConfig = await getPortalChatConfig(c.env, caller.hubId);
   const doId = c.env.EXPORT_STREAM.idFromName(streamId);
   const stub = c.env.EXPORT_STREAM.get(doId);
   const startRes = await stub.fetch("https://do/start", {
@@ -193,7 +195,7 @@ exportRoutes.post("/:projectId/design-doc", async (c) => {
       hubId: caller.hubId,
       projectId,
       specHash,
-      model: c.env.CHAT_MODEL,
+      model: portalConfig.chatModel ?? c.env.CHAT_MODEL,
       systemPrompt: DESIGN_DOC_PROMPT,
       userPrompt,
       fallbackUserPrompt,

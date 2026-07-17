@@ -9,6 +9,7 @@ import { knowledgeRoutes } from "./routes/knowledge";
 import { debugRoutes } from "./routes/debug";
 import { exportRoutes } from "./routes/export";
 import { usageRoutes } from "./routes/usage";
+import { settingsRoutes } from "./routes/settings";
 import type { StudioProjectAgent } from "./agents/studio-project-agent";
 
 export { ExportStream } from "./do/export-stream";
@@ -67,6 +68,7 @@ app.route("/knowledge", knowledgeRoutes);
 app.route("/debug", debugRoutes);
 app.route("/export", exportRoutes);
 app.route("/usage", usageRoutes);
+app.route("/settings", settingsRoutes);
 
 app.notFound((c) => c.json({ error: "not_found" }, 404));
 app.onError((err, c) => {
