@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Duration, Effect, Fiber } from "effect";
-import { hubspot } from "@hubspot/ui-extensions";
+import { hubspot, logger } from "@hubspot/ui-extensions";
 
 // Polls the worker's /streams/:id endpoint at a fixed interval while the
 // stream is producing tokens. Calls onChunk(append, nextOffset) every tick
@@ -217,6 +217,11 @@ function createStreamProgram({
       typeof data.serverNow === "number" &&
       data.serverNow - data.lastEventAt > SERVER_STALL_FAIL_MS
     ) {
+      logger.warn(
+        `[useStream] server stall: stream=${streamId} phase=${data.phase ?? ""} ` +
+          `idleMs=${data.serverNow - data.lastEventAt} offset=${offset} ` +
+          `sinceClientAdvanceMs=${Date.now() - lastAdvanceAt}`,
+      );
       yield* stopStreaming("");
       yield* runHandler(onErrorRef, new Error("stream stalled"));
       return { done: true, delayMs: null };
@@ -229,6 +234,9 @@ function createStreamProgram({
     }
 
     if (data.status === "error") {
+      logger.error(
+        `[useStream] worker error: stream=${streamId} error=${data.error || "stream error"}`,
+      );
       yield* stopStreaming("");
       yield* runHandler(onErrorRef, new Error(data.error || "stream error"));
       return { done: true, delayMs: null };
@@ -241,11 +249,20 @@ function createStreamProgram({
         if (isCancelled()) return { done: true, delayMs: null };
         if (retries < MAX_FETCH_RETRIES) {
           retries += 1;
+          logger.debug(
+            `[useStream] poll retry ${retries}/${MAX_FETCH_RETRIES}: stream=${streamId} ` +
+              `error=${toError(error).message} offset=${offset}`,
+          );
           return {
             done: false,
             delayMs: intervalMs * (retries + 1),
           };
         }
+        logger.warn(
+          `[useStream] poll gave up after ${retries} retries: stream=${streamId} ` +
+            `error=${toError(error).message} offset=${offset} ` +
+            `sinceClientAdvanceMs=${Date.now() - lastAdvanceAt}`,
+        );
         yield* stopStreaming("");
         yield* runHandler(onErrorRef, toError(error));
         return { done: true, delayMs: null };
@@ -295,6 +312,9 @@ export function useStream({
     if (!enabled || !streamId || !workerUrl) return undefined;
 
     let cancelled = false;
+    logger.debug(
+      `[useStream] subscribe: stream=${streamId} intervalMs=${intervalMs}`,
+    );
     setIsStreaming(true);
     setPhase("Thinking");
     setPhaseHistory([]);

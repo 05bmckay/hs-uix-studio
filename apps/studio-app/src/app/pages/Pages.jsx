@@ -1,5 +1,5 @@
 import React from "react";
-import { hubspot } from "@hubspot/ui-extensions";
+import { hubspot, logger } from "@hubspot/ui-extensions";
 import { createPageRouter, PageRoutes } from "@hubspot/ui-extensions/pages";
 
 import { HomePage } from "./routes/HomePage.jsx";
@@ -21,8 +21,11 @@ const PageRouter = createPageRouter(
   </PageRoutes>
 );
 
-hubspot.extend(() => (
-  <ProjectsProvider>
-    <PageRouter />
-  </ProjectsProvider>
-));
+hubspot.extend(() => {
+  logger.debug("[studio] extension loaded");
+  return (
+    <ProjectsProvider>
+      <PageRouter />
+    </ProjectsProvider>
+  );
+});
