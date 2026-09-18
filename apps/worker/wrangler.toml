@@ -31,8 +31,7 @@ name = "STUDIO_PROJECT_AGENT"
 class_name = "StudioProjectAgent"
 
 # Workers AI binding — used for cheap background tasks like chat-title
-# generation and as a direct path for Kimi/etc. in /debug. The primary chat
-# model runs through the AI Gateway unified (OpenAI-compat) endpoint; see
+# generation. The primary chat model runs through the AI Gateway; see
 # src/lib/llm.ts.
 [ai]
 binding = "AI"

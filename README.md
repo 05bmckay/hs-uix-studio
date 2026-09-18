@@ -41,7 +41,6 @@ hs-uix-studio/
 ├── CLAUDE.md                     # repo guidance for coding agents
 ├── PLAN.md                       # high-level build plan and product scope
 ├── JSON_RENDER_PLAN.md           # renderer/spec notes
-├── claude_system_prompt.md       # prompt reference / scratch material
 ├── schema/                       # reserved for JSON schema once the spec stabilizes
 ├── scripts/                      # repo-level helper scripts
 ├── specs/                        # hand-authored sample card specs and spec docs
@@ -125,7 +124,6 @@ Routes are mounted from `src/index.ts`:
 - `/export` — generated JSON/markdown/TSX artifact flows.
 - `/knowledge` — knowledge-base inspection endpoints.
 - `/usage` — usage/settings data.
-- `/debug` — development diagnostics.
 
 ## The JSON spec format
 
@@ -262,3 +260,7 @@ Known rough edges:
 
 - [`hs-uix`](https://github.com/05bmckay/hs-uix) — component library Studio renders and exports against.
 - HubSpot UI Extensions SDK — runtime/component environment for the app page and generated cards.
+
+## License
+
+[MIT](./LICENSE)

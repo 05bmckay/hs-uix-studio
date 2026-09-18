@@ -7,3 +7,4 @@ dist/
 build/
 .wrangler/
 .claude/settings.local.json
+*.zip

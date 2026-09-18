@@ -1,6 +1,6 @@
 # Provenance
 
-These standards were forked from `/Users/cartermckay/UI-EXTENSIONS-STANDARDS/standards` and then **diverged** to fit Studio's narrower scope. Do not re-sync blindly from upstream — we actively edit these files to remove rules that don't apply (e.g. CRM property hooks, record-context data fetching) and add rules specific to Studio's JSON-spec output.
+These standards were forked from the upstream `UI-EXTENSIONS-STANDARDS/standards` repo and then **diverged** to fit Studio's narrower scope. Do not re-sync blindly from upstream — we actively edit these files to remove rules that don't apply (e.g. CRM property hooks, record-context data fetching) and add rules specific to Studio's JSON-spec output.
 
 When upstream changes land that we want to pick up, do a manual diff and copy over the relevant portions.
 

@@ -184,7 +184,9 @@ exportRoutes.post("/:projectId/design-doc", async (c) => {
   // Kick off a DO-backed streaming job and return the streamId immediately.
   // The UI polls /streams/:id the same way it polls chat streams; the DO
   // writes the final markdown to design_docs on completion.
-  const streamId = `export:${projectId}:${Date.now()}`;
+  // /streams/:id is unauthenticated — the id is the capability, so it must be
+  // unguessable (same as chat streams, which use a random message id).
+  const streamId = `export:${projectId}:${crypto.randomUUID()}`;
   const portalConfig = await getPortalChatConfig(c.env, caller.hubId);
   const doId = c.env.EXPORT_STREAM.idFromName(streamId);
   const stub = c.env.EXPORT_STREAM.get(doId);
